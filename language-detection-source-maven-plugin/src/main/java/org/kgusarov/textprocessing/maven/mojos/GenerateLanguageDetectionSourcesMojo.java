@@ -63,6 +63,8 @@ public class GenerateLanguageDetectionSourcesMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        getLog().info("Test");
+        getLog().info(packagePrefix);
+        getLog().info(inputDir.toString());
+        getLog().info(outputDir.toString());
     }
 }

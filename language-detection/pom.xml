@@ -19,10 +19,6 @@
                 <artifactId>language-detection-source-maven-plugin</artifactId>
                 <version>${project.parent.version}</version>
 
-                <configuration>
-                    <packagePrefix>org.kgusarov.textprocessing.langdetect.languages</packagePrefix>
-                </configuration>
-
                 <executions>
                     <execution>
                         <id>generate-language-classes</id>
@@ -30,6 +26,24 @@
                             <goal>generate</goal>
                         </goals>
                         <phase>generate-sources</phase>
+
+                        <configuration>
+                            <inputDir>${project.basedir}/src/main/language-json/nr</inputDir>
+                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages</packagePrefix>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>generate-language-classes-sm</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+
+                        <configuration>
+                            <inputDir>${project.basedir}/src/main/language-json/sm</inputDir>
+                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages.sm</packagePrefix>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
