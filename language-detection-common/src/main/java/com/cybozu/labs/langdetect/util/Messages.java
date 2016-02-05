@@ -32,7 +32,7 @@ import java.util.ResourceBundle;
 final class Messages {
     private static final Logger LOGGER = LoggerFactory.getLogger(Messages.class);
 
-    private static final String BUNDLE_NAME = "com.cybozu.labs.langdetect.util.messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = Messages.class.getName();
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
 
     private Messages() {
