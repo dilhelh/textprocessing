@@ -36,9 +36,10 @@ public abstract class LangProfile {
     private static final Pattern ROMAN_CHECK_REGEX = Pattern.compile(".*[A-Za-z].*");
     private static final Pattern LATIN_CHECK_REGEX = Pattern.compile("^[A-Za-z]$");
 
+    final Map<String, Integer> frequencies = Maps.newHashMap();
+    final int[] nGramCount = new int[NGram.N_GRAM];
+
     private final String name;
-    private final Map<String, Integer> freq = Maps.newHashMap();
-    private final int[] nGramCount = new int[NGram.N_GRAM];
 
     /**
      * @param name              Language name
@@ -47,7 +48,7 @@ public abstract class LangProfile {
     protected LangProfile(final String name, final Map<String, Integer> initialFreqs) {
         this.name = name;
 
-        freq.putAll(initialFreqs);
+        frequencies.putAll(initialFreqs);
     }
 
     /**
@@ -68,10 +69,10 @@ public abstract class LangProfile {
         }
 
         nGramCount[len - 1]++;
-        final Integer current = freq.get(gram);
+        final Integer current = frequencies.get(gram);
         final Integer val = (current == null)? 1 : current + 1;
 
-        freq.put(gram, val);
+        frequencies.put(gram, val);
     }
 
     /**
@@ -89,11 +90,11 @@ public abstract class LangProfile {
         }
 
         int roman = 0;
-        final Set<String> keys = freq.keySet();
+        final Set<String> keys = frequencies.keySet();
 
         for (final Iterator<String> i = keys.iterator(); i.hasNext(); ) {
             final String key = i.next();
-            final int count = freq.get(key);
+            final int count = frequencies.get(key);
 
             if (count <= threshold) {
                 nGramCount[key.length() - 1] -= count;
@@ -107,12 +108,12 @@ public abstract class LangProfile {
 
         // roman check
         if (roman < nGramCount[0] / NGram.N_GRAM) {
-            final Set<String> keys2 = freq.keySet();
+            final Set<String> keys2 = frequencies.keySet();
 
             for (final Iterator<String> i = keys2.iterator(); i.hasNext(); ) {
                 final String key = i.next();
                 if (ROMAN_CHECK_REGEX.matcher(key).matches()) {
-                    nGramCount[key.length() - 1] -= freq.get(key);
+                    nGramCount[key.length() - 1] -= frequencies.get(key);
                     i.remove();
                 }
             }

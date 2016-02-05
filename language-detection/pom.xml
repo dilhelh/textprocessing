@@ -29,7 +29,10 @@
 
                         <configuration>
                             <inputDir>${project.basedir}/src/main/language-json/nr</inputDir>
-                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages</packagePrefix>
+                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages.wikipedia</packagePrefix>
+                            <additionalComment>
+                                Generated from Wikipedia corpus for long messages
+                            </additionalComment>
                         </configuration>
                     </execution>
 
@@ -42,7 +45,10 @@
 
                         <configuration>
                             <inputDir>${project.basedir}/src/main/language-json/sm</inputDir>
-                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages.sm</packagePrefix>
+                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages.twitter</packagePrefix>
+                            <additionalComment>
+                                Generated from Twitter corpus for short messages
+                            </additionalComment>
                         </configuration>
                     </execution>
                 </executions>

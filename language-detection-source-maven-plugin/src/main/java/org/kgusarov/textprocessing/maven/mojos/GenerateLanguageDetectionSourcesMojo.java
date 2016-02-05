@@ -16,6 +16,8 @@ package org.kgusarov.textprocessing.maven.mojos;
  * limitations under the License.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.codemodel.JCodeModel;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -24,6 +26,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * This mojo generates java classes from language detection json files.
@@ -61,10 +64,48 @@ public class GenerateLanguageDetectionSourcesMojo extends AbstractMojo {
     )
     private String packagePrefix;
 
+    /**
+     * Additional comment to include in each generated file
+     */
+    @Parameter(
+            name = "additionalComment",
+            required = false
+    )
+    private String additionalComment;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        getLog().info(packagePrefix);
-        getLog().info(inputDir.toString());
-        getLog().info(outputDir.toString());
+        final JCodeModel codeModel = new JCodeModel();
+
+        if (!inputDir.isDirectory()) {
+            throw new MojoFailureException("Invalid input directory specified");
+        }
+
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final File[] files = inputDir.listFiles();
+        if (files == null) {
+            throw new MojoFailureException("Failed to get file list from directory");
+        }
+
+        for (final File file : files) {
+            processLangProfileFile(objectMapper, file);
+        }
+
+        try {
+            codeModel.build(outputDir);
+        } catch (final IOException e) {
+            getLog().error("Failed to write out generated code files", e);
+
+            // throw MojoFailureException
+            // https://maven.apache.org/plugin-developers/plugin-testing.html
+        }
+    }
+
+    private void processLangProfileFile(ObjectMapper objectMapper, File file) throws MojoFailureException {
+        try {
+            final LangProfileDocument langProfileDocument = objectMapper.readValue(file, LangProfileDocument.class);
+        } catch (final IOException e) {
+            throw new MojoFailureException("Incorrect input file: " + file, e);
+        }
     }
 }
