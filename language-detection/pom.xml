@@ -29,7 +29,8 @@
 
                         <configuration>
                             <inputDir>${project.basedir}/src/main/language-json/nr</inputDir>
-                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages.wikipedia</packagePrefix>
+                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages.nr</packagePrefix>
+                            <shortMessages>false</shortMessages>
                             <additionalComment>
                                 Generated from Wikipedia corpus for long messages
                             </additionalComment>
@@ -45,7 +46,8 @@
 
                         <configuration>
                             <inputDir>${project.basedir}/src/main/language-json/sm</inputDir>
-                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages.twitter</packagePrefix>
+                            <packagePrefix>org.kgusarov.textprocessing.langdetect.languages.sm</packagePrefix>
+                            <shortMessages>true</shortMessages>
                             <additionalComment>
                                 Generated from Twitter corpus for short messages
                             </additionalComment>
@@ -53,7 +55,56 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.10</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.kgusarov.textprocessing</groupId>
+            <artifactId>language-detection-common</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.10</version>
+
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>annotations</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons.lang3.version}</version>
+        </dependency>
+    </dependencies>
 
 </project>

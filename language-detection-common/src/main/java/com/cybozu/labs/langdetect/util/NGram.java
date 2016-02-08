@@ -33,7 +33,7 @@ import static java.lang.Character.UnicodeBlock.*;
  * @author Nakatani Shuyo
  * @author Konstantin Gusarov
  */
-class NGram {
+public class NGram {
     private static final String LATIN1_EXCLUDED = Messages.getString("NGram.LATIN1_EXCLUDE");
     private static final HashMap<Character, Character> CJK_MAP = Maps.newHashMap();
 
@@ -181,7 +181,7 @@ class NGram {
     private static final Pattern ALPHABET_WITH_DMARK = Pattern.compile("([" + TO_NORMALIZE_VI_CHARS + "])(["
             + DMARK_CLASS + "])");
 
-    static final int N_GRAM = 3;
+    public static final int MAX_NGRAM_LENGTH = 3;
 
     static {
         for (final String cjkClass : CJK_CLASSES) {
@@ -196,7 +196,7 @@ class NGram {
     private String chars;
     private boolean capital;
 
-    NGram() {
+    public NGram() {
         chars = " ";
         capital = false;
     }
@@ -206,7 +206,7 @@ class NGram {
      *
      * @param ch    Character to add to buffer
      */
-    void addChar(final char ch) {
+    public void addChar(final char ch) {
         final char normalized = normalize(ch);
         final char lastchar = chars.charAt(chars.length() - 1);
 
@@ -217,7 +217,7 @@ class NGram {
             if (normalized == ' ') {
                 return;
             }
-        } else if (chars.length() >= N_GRAM) {
+        } else if (chars.length() >= MAX_NGRAM_LENGTH) {
             chars = chars.substring(1);
         }
 
@@ -239,13 +239,13 @@ class NGram {
      * @return      n-Gram String (null if it is invalid)
      */
     @Nullable
-    String get(final int n) {
+    public String get(final int n) {
         if (capital) {
             return null;
         }
 
         final int len = chars.length();
-        if (n < 1 || n > N_GRAM || len < n) {
+        if (n < 1 || n > MAX_NGRAM_LENGTH || len < n) {
             return null;
         }
 
@@ -267,7 +267,7 @@ class NGram {
      * @param ch    Character to be normalized
      * @return      Normalized character
      */
-    static char normalize(final char ch) {
+    public static char normalize(final char ch) {
         final Character.UnicodeBlock block = of(ch);
         if (Objects.equals(block, GENERAL_PUNCTUATION)) {
             return ' ';
@@ -343,7 +343,7 @@ class NGram {
      * @param text      Vietnamese text to be normalized
      * @return          Normalized text
      */
-    static String normalizeVietnamese(final String text) {
+    public static String normalizeVietnamese(final String text) {
         final Matcher m = ALPHABET_WITH_DMARK.matcher(text);
         final StringBuffer sb = new StringBuffer();
 

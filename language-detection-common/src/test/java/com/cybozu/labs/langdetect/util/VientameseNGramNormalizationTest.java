@@ -31,7 +31,7 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(Parameterized.class)
 public final class VientameseNGramNormalizationTest {
-    @Parameterized.Parameters(name = "{index}: NGram.normalizeVietnamese({0})={1}")
+    @Parameterized.Parameters(name = "{index}: NGram.normalizeVietnamese")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
                 {"", ""},

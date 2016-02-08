@@ -37,7 +37,7 @@ public class TagExtractorTest {
         final TagExtractor extractor = new TagExtractor("abstract", 10);
         assertEquals(0, extractor.count());
 
-        final LangProfile profile = new TestLangProfile();
+        final LangProfile profile = new TestLangProfile(new int[]{0, 0, 0});
 
         // normal
         extractor.setTag("abstract");

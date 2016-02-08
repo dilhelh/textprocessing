@@ -37,16 +37,24 @@ public abstract class LangProfile {
     private static final Pattern LATIN_CHECK_REGEX = Pattern.compile("^[A-Za-z]$");
 
     final Map<String, Integer> frequencies = Maps.newHashMap();
-    final int[] nGramCount = new int[NGram.N_GRAM];
+    final int[] nGramCount = new int[NGram.MAX_NGRAM_LENGTH];
 
     private final String name;
 
     /**
      * @param name              Language name
      * @param initialFreqs      Initial frequency information
+     * @param nGramCount        N-Gram counts in initial fre information
      */
-    protected LangProfile(final String name, final Map<String, Integer> initialFreqs) {
+    protected LangProfile(final String name, final Map<String, Integer> initialFreqs, final int[] nGramCount) {
         this.name = name;
+
+        final int l = nGramCount.length;
+        if (l != NGram.MAX_NGRAM_LENGTH) {
+            throw new IllegalArgumentException("Invalid n-gram count: " + l);
+        }
+
+        System.arraycopy(nGramCount, 0, this.nGramCount, 0, l);
 
         frequencies.putAll(initialFreqs);
     }
@@ -63,7 +71,7 @@ public abstract class LangProfile {
         }
 
         final int len = gram.length();
-        if (len < 1 || len > NGram.N_GRAM) {
+        if (len < 1 || len > NGram.MAX_NGRAM_LENGTH) {
             // Illegal
             return;
         }
@@ -107,7 +115,7 @@ public abstract class LangProfile {
         }
 
         // roman check
-        if (roman < nGramCount[0] / NGram.N_GRAM) {
+        if (roman < nGramCount[0] / NGram.MAX_NGRAM_LENGTH) {
             final Set<String> keys2 = frequencies.keySet();
 
             for (final Iterator<String> i = keys2.iterator(); i.hasNext(); ) {
@@ -134,10 +142,37 @@ public abstract class LangProfile {
             final char ch = text.charAt(i);
             gram.addChar(ch);
 
-            for (int n = 1; n <= NGram.N_GRAM; ++n) {
+            for (int n = 1; n <= NGram.MAX_NGRAM_LENGTH; ++n) {
                 final String s = gram.get(n);
                 add(s);
             }
         }
+    }
+
+    /**
+     * Get name of the language profile
+     *
+     * @return          Name of this language profile
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Get frequencies from the language profile
+     *
+     * @return          N-Gram frequency table
+     */
+    public Map<String, Integer> getFrequencies() {
+        return frequencies;
+    }
+
+    /**
+     * Get counts of all n-grams for the language profile
+     *
+     * @return          N-Gram count table
+     */
+    public int[] getNGramCount() {
+        return nGramCount;
     }
 }

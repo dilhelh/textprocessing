@@ -81,4 +81,24 @@ public final class NGramTest {
         assertEquals(" B", ngram.get(2));
         assertNull(ngram.get(3));
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalArgumentConstructorInvocation0() {
+        TestLangProfile.construct(new int[0]);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalArgumentConstructorInvocation1() {
+        TestLangProfile.construct(new int[1]);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalArgumentConstructorInvocation2() {
+        TestLangProfile.construct(new int[2]);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalArgumentConstructorInvocation4() {
+        TestLangProfile.construct(new int[4]);
+    }
 }

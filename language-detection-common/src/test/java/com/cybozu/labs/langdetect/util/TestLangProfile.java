@@ -3,10 +3,14 @@ package com.cybozu.labs.langdetect.util;
 import java.util.Collections;
 
 /**
-* Author: Konstantin Gusarov
+* @author Konstantin Gusarov
 */
 class TestLangProfile extends LangProfile {
-    TestLangProfile() {
-        super("en", Collections.emptyMap());
+    TestLangProfile(final int[] nGramCount) {
+        super("en", Collections.emptyMap(), nGramCount);
+    }
+
+    static TestLangProfile construct(final int[] nGramCount) {
+        return new TestLangProfile(nGramCount);
     }
 }
