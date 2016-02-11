@@ -9,8 +9,6 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>language-detection</module>
-        <module>language-detection-source-maven-plugin</module>
-        <module>language-detection-common</module>
     </modules>
 
     <packaging>pom</packaging>

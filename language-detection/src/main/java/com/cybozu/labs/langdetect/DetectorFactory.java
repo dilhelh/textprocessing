@@ -4,14 +4,13 @@ import com.cybozu.labs.langdetect.util.LangProfile;
 import com.cybozu.labs.langdetect.util.NGram;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.kgusarov.textprocessing.annotations.LanguageProfile;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Language Detector Factory Class
@@ -44,7 +43,7 @@ public class DetectorFactory {
      * @throws LangDetectException      In case ini
      */
     public DetectorFactory(final boolean shortMessages) {
-        final Reflections reflections = Reflections.collect();
+        /*final Reflections reflections = Reflections.collect();
         final Set<Class<?>> languageProfiles = reflections.getTypesAnnotatedWith(LanguageProfile.class);
 
         final List<Class<? extends LangProfile>> profileClasses = Lists.newArrayList();
@@ -67,7 +66,7 @@ public class DetectorFactory {
         for (int i = 0; i < languageCount; i++) {
             final Class<? extends LangProfile> profile = profileClasses.get(i);
             addProfile(profile, i, languageCount);
-        }
+        }*/
     }
 
     private void addProfile(final Class<? extends LangProfile> clazz, final int index, final int languageCount) {

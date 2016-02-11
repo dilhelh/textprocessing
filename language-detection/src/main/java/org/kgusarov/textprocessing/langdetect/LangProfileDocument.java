@@ -1,4 +1,4 @@
-package org.kgusarov.textprocessing.maven.mojos;
+package org.kgusarov.textprocessing.langdetect;
 
 /*
  * Copyright (C) 2016 Konstantin Gusarov

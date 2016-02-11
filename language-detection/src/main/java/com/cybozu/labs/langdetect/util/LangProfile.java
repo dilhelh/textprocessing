@@ -17,6 +17,7 @@ package com.cybozu.labs.langdetect.util;
  */
 
 import com.google.common.collect.Maps;
+import org.kgusarov.textprocessing.langdetect.LangProfileDocument;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -24,13 +25,13 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * {@link LangProfile} is a Language Profile Class.
+ * {@link com.cybozu.labs.langdetect.util.LangProfile} is a Language Profile Class.
  * Users don't use this class directly.
  *
  * @author Nakatani Shuyo
  * @author Konstantin Gusarov
  */
-public abstract class LangProfile {
+public class LangProfile {
     private static final int MINIMUM_FREQ = 2;
     private static final int LESS_FREQ_RATIO = 100000;
     private static final Pattern ROMAN_CHECK_REGEX = Pattern.compile(".*[A-Za-z].*");
@@ -40,6 +41,15 @@ public abstract class LangProfile {
     final int[] nGramCount = new int[NGram.MAX_NGRAM_LENGTH];
 
     private final String name;
+
+    /**
+     * Create new instance from deserialized language profile document
+     *
+     * @param document          Deserialized language profile document
+     */
+    public LangProfile(final LangProfileDocument document) {
+        this(document.getName(), document.getFrequencies(), document.getnGramCount());
+    }
 
     /**
      * @param name              Language name

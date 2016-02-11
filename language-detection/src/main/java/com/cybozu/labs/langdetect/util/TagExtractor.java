@@ -19,7 +19,7 @@ package com.cybozu.labs.langdetect.util;
 import java.util.Objects;
 
 /**
- * {@link com.cybozu.labs.langdetect.util.TagExtractor} is a class which extracts inner texts of specified tag.
+ * {@link TagExtractor} is a class which extracts inner texts of specified tag.
  * Users don't use this class directly.
  *
  * @author Nakatani Shuyo
