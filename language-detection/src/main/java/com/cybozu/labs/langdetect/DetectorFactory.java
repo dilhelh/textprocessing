@@ -2,15 +2,21 @@ package com.cybozu.labs.langdetect;
 
 import com.cybozu.labs.langdetect.util.LangProfile;
 import com.cybozu.labs.langdetect.util.NGram;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.kgusarov.textprocessing.langdetect.LangProfileDocument;
+import org.reflections.Reflections;
+import org.reflections.scanners.ResourcesScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Language Detector Factory Class
@@ -32,6 +38,9 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 public class DetectorFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DetectorFactory.class);
+    private static final Pattern SHORT_MESSAGE_RESOURCES = Pattern.compile("^sm/(.*)\\.json$");
+    private static final Pattern LONG_MESSAGE_RESOURCES = Pattern.compile("^nr/(.*)\\.json$");
+    private static final Pattern JSON_MATCHER = Pattern.compile("^(.*)\\.json$");
 
     final Map<String, double[]> languageProbabilityMap = Maps.newHashMap();
     final List<String> languages = Lists.newArrayList();
@@ -43,41 +52,27 @@ public class DetectorFactory {
      * @throws LangDetectException      In case ini
      */
     public DetectorFactory(final boolean shortMessages) {
-        /*final Reflections reflections = Reflections.collect();
-        final Set<Class<?>> languageProfiles = reflections.getTypesAnnotatedWith(LanguageProfile.class);
+        final Pattern resourceFilter = shortMessages ? SHORT_MESSAGE_RESOURCES : LONG_MESSAGE_RESOURCES;
+        final Reflections reflections = new Reflections(null, new ResourcesScanner());
+        final List<String> resources = reflections.getResources(JSON_MATCHER)
+                .stream()
+                .filter(s -> resourceFilter.matcher(s).matches())
+                .collect(Collectors.toList());
 
-        final List<Class<? extends LangProfile>> profileClasses = Lists.newArrayList();
-        for (final Class<?> profile : languageProfiles) {
-            if (!LangProfile.class.isAssignableFrom(profile)) {
-                throw new LangDetectException(ErrorCode.FAILED_TO_INITIALIZE,
-                        profile + " is annotated as language profile while it isn't");
-            }
+        final int languageCount = resources.size();
+        final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        final ObjectMapper mapper = new ObjectMapper();
 
-            final LanguageProfile annotation = profile.getAnnotation(LanguageProfile.class);
-            if (shortMessages != annotation.forShortMessages()) {
-                LOGGER.trace("Skipping {} profile - it is meant for different length messages", profile);
-                continue;
-            }
-
-            profileClasses.add((Class<? extends LangProfile>) profile);
-        }
-
-        final int languageCount = profileClasses.size();
         for (int i = 0; i < languageCount; i++) {
-            final Class<? extends LangProfile> profile = profileClasses.get(i);
-            addProfile(profile, i, languageCount);
-        }*/
-    }
+            final String profile = resources.get(i);
 
-    private void addProfile(final Class<? extends LangProfile> clazz, final int index, final int languageCount) {
-        try {
-            final Constructor<? extends LangProfile> ctr = clazz.getConstructor();
-            final LangProfile profileInstance = ctr.newInstance();
-
-            addProfile(profileInstance, index, languageCount);
-        } catch (final InvocationTargetException | NoSuchMethodException | IllegalAccessException | InstantiationException e) {
-            throw new LangDetectException(ErrorCode.FAILED_TO_INITIALIZE,
-                    "Failed to instantiate language profile class " + clazz, e);
+            try (final InputStream is = cl.getResourceAsStream(profile)) {
+                final LangProfileDocument lpd = mapper.readValue(is, LangProfileDocument.class);
+                final LangProfile langProfile = new LangProfile(lpd);
+                addProfile(langProfile, i, languageCount);
+            } catch (final IOException e) {
+                throw new LangDetectException(ErrorCode.FAILED_TO_INITIALIZE, "Failed to read language profile", e);
+            }
         }
     }
 

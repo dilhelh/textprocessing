@@ -83,7 +83,7 @@ public class Detector {
     private final Map<String, double[]> languageProbabilityMap;
     private final List<String> languageList;
 
-    private final StringBuilder text = new StringBuilder();
+    private String text;
     private double[] langprob;
 
     private double alpha = DEFAULT_ALHPA;
@@ -112,7 +112,7 @@ public class Detector {
      * Set smoothing parameter.
      * The default value is 0.5(i.e. Expected Likelihood Estimate).
      *
-     * @param alpha the smoothing parameter
+     * @param alpha         The smoothing parameter
      */
     public void setAlpha(final double alpha) {
         this.alpha = alpha;
@@ -159,17 +159,23 @@ public class Detector {
      *
      * @param text                  The target text to append
      */
-    public void append(String text) {
-        text = URL_REGEX.matcher(text).replaceAll(" ");
-        text = MAIL_REGEX.matcher(text).replaceAll(" ");
-        text = NGram.normalizeVietnamese(text);
+    /*public void append(final String text) {
+        String sanitized = URL_REGEX.matcher(text).replaceAll(" ");
+        sanitized = MAIL_REGEX.matcher(text).replaceAll(" ");
+        sanitized = NGram.normalizeVietnamese(text);
+
+
+
+
         char pre = 0;
         for (int i = 0; i < text.length() && i < maxTextLength; ++i) {
             final char c = text.charAt(i);
-            if (c != ' ' || pre != ' ') this.text.append(c);
+            if (c != ' ' || pre != ' ') {
+                this.text.append(c);
+            }
             pre = c;
         }
-    }
+    }*/
 
     /**
      * Cleaning text to detect
