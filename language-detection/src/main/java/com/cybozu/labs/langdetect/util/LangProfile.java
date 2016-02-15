@@ -1,7 +1,7 @@
 package com.cybozu.labs.langdetect.util;
 
 /*
- * Copyright (C) 2016 Konstantin Gusarov
+ * Copyright (C) 2010-2014 Cybozu Labs, 2016 Konstantin Gusarov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@ package com.cybozu.labs.langdetect.util;
  * limitations under the License.
  */
 
-import com.google.common.collect.Maps;
 import org.kgusarov.textprocessing.langdetect.LangProfileDocument;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import static com.google.common.collect.Maps.newHashMap;
+import static java.util.Arrays.copyOf;
 
 /**
  * {@link com.cybozu.labs.langdetect.util.LangProfile} is a Language Profile Class.
@@ -37,7 +39,7 @@ public class LangProfile {
     private static final Pattern ROMAN_CHECK_REGEX = Pattern.compile(".*[A-Za-z].*");
     private static final Pattern LATIN_CHECK_REGEX = Pattern.compile("^[A-Za-z]$");
 
-    final Map<String, Integer> frequencies = Maps.newHashMap();
+    final Map<String, Integer> frequencies = newHashMap();
     final int[] nGramCount = new int[NGram.MAX_NGRAM_LENGTH];
 
     private final String name;
@@ -49,6 +51,15 @@ public class LangProfile {
      */
     public LangProfile(final LangProfileDocument document) {
         this(document.getName(), document.getFrequencies(), document.getnGramCount());
+    }
+
+    /**
+     * Create new instance knowing only the language profile name
+     *
+     * @param name              Language profile name
+     */
+    public LangProfile(final String name) {
+        this.name = name;
     }
 
     /**
@@ -184,5 +195,20 @@ public class LangProfile {
      */
     public int[] getNGramCount() {
         return nGramCount;
+    }
+
+    /**
+     * Create save-ready document from the language profile
+     *
+     * @return          This profile as a JSON serialization-ready document
+     */
+    public LangProfileDocument toDocument() {
+        final LangProfileDocument result = new LangProfileDocument();
+
+        result.setName(name);
+        result.setnGramCount(copyOf(nGramCount, nGramCount.length));
+        result.setFrequencies(newHashMap(frequencies));
+
+        return result;
     }
 }
