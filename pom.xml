@@ -154,6 +154,7 @@
                             <goal>test</goal>
                         </goals>
                         <configuration>
+                            <useSystemClassLoader>false</useSystemClassLoader>
                             <argLine>${surefireArgLine}</argLine>
                         </configuration>
                     </execution>
