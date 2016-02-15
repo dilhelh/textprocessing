@@ -10,11 +10,12 @@ is the "unstatic'ing" of the ```DetectorFactory``` class. Now it has to be creat
 a single parameter ```shortMessages``` that defines which corpus should be used:
 * If parameter is set to ```true``` then language profiles that are generated from Twitter Corpus are used. These language profiles should prove better on short messages
 * If parameter is set to ```false``` then language profiles that are generated from Wikipedia Corpus are used. These language profiles should prove better on long messages
+
 Corpuses are now part of the language detection JAR file. Also please note that ```Detector``` instances obtained from 
 the ```DetectorFactory``` are stateful - they keep both evaluated text as well as some additional information inside.
 
 ###### Example usage
-```
+```java
 // Use short message corpus
 final DetectorFactory detectorFactory = new DetectorFactory(true);
 final Detector detector = detectorFactory.create();
