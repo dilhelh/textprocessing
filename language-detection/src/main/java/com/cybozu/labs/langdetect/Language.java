@@ -48,4 +48,12 @@ public class Language {
     public void setProbability(final double probability) {
         this.probability = probability;
     }
+
+    @Override
+    public String toString() {
+        return "Language{" +
+                "language='" + language + '\'' +
+                ", probability=" + probability +
+                '}';
+    }
 }

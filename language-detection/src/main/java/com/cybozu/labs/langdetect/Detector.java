@@ -18,7 +18,10 @@ package com.cybozu.labs.langdetect;
 
 import com.cybozu.labs.langdetect.util.NGram;
 import com.google.common.collect.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.Character.UnicodeBlock;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -66,6 +69,8 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
  * @see DetectorFactory
  */
 public class Detector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Detector.class);
+
     private static final double DEFAULT_ALHPA = 0.5;
     private static final double ALPHA_WIDTH = 0.05;
 
@@ -79,12 +84,15 @@ public class Detector {
     private static final Pattern URL_REGEX = Pattern.compile("https?://[-_.?&~;+=/#0-9A-Za-z]{1,2076}");
     private static final Pattern MAIL_REGEX = Pattern.compile("[-_.0-9A-Za-z]{1,64}@[-_0-9A-Za-z]{1,255}[-_.0-9A-Za-z]{1,255}");
     private static final int DEFAULT_MAX_TEXT_LENGTH = 10000;
+    private static final int CHECK_TRESHOLDS_ITERATION = 5;
+    private static final double MINIMAL_PROBABILITY_TO_DISPLAY = 0.00001;
 
     private final Map<String, double[]> languageProbabilityMap;
     private final List<String> languageList;
+    private final Random rand = new Random();
 
     private String text;
-    private double[] langprob;
+    private double[] languageProbabilities;
 
     private double alpha = DEFAULT_ALHPA;
     private int maxTextLength = DEFAULT_MAX_TEXT_LENGTH;
@@ -102,15 +110,17 @@ public class Detector {
     }
 
     /**
-     * Set Verbose Mode(use for debug).
+     * Set Verbose Mode (use for debug).
+     *
+     * @param verbose       {@code true} if mode should be set to verbose
      */
-    public void setVerbose() {
-        verbose = true;
+    public void setVerbose(final boolean verbose) {
+        this.verbose = verbose;
     }
 
     /**
      * Set smoothing parameter.
-     * The default value is 0.5(i.e. Expected Likelihood Estimate).
+     * The default value is 0.5 (i.e. Expected Likelihood Estimate).
      *
      * @param alpha         The smoothing parameter
      */
@@ -119,34 +129,42 @@ public class Detector {
     }
 
     /**
-     * Set prior information about language probabilities.
+     * Set priority information about language probabilities.
      *
-     * @param priorMap the priorMap to set
+     * @param priorMap      The priority map to set
      * @throws LangDetectException
      */
     public void setPriorMap(final Map<String, Double> priorMap) throws LangDetectException {
         this.priorMap = new double[languageList.size()];
+
         double sump = 0;
-        for (int i = 0; i < this.priorMap.length; ++i) {
+        for (int i = 0; i < this.priorMap.length; i++) {
             final String lang = languageList.get(i);
             if (priorMap.containsKey(lang)) {
                 final double p = priorMap.get(lang);
-                if (p < 0)
+                if (p < 0) {
                     throw new LangDetectException(ErrorCode.INIT_PARAM, "Prior probability must be non-negative.");
+                }
+
                 this.priorMap[i] = p;
                 sump += p;
             }
         }
-        if (sump <= 0)
+
+        if (sump <= 0) {
             throw new LangDetectException(ErrorCode.INIT_PARAM, "More one of prior probability must be non-zero.");
-        for (int i = 0; i < this.priorMap.length; ++i) this.priorMap[i] /= sump;
+        }
+
+        for (int i = 0; i < this.priorMap.length; i++) {
+            this.priorMap[i] /= sump;
+        }
     }
 
     /**
      * Specify max size of target text to use for language detection.
      * The default value is 10000(10KB).
      *
-     * @param maxTextLength         The maxTextLength to set
+     * @param maxTextLength         Max size of target text
      */
     public void setMaxTextLength(final int maxTextLength) {
         this.maxTextLength = maxTextLength;
@@ -159,174 +177,227 @@ public class Detector {
      *
      * @param text                  The target text to append
      */
-    /*public void append(final String text) {
+    public void append(final String text) {
         String sanitized = URL_REGEX.matcher(text).replaceAll(" ");
-        sanitized = MAIL_REGEX.matcher(text).replaceAll(" ");
-        sanitized = NGram.normalizeVietnamese(text);
+        sanitized = MAIL_REGEX.matcher(sanitized).replaceAll(" ");
+        sanitized = NGram.normalizeVietnamese(sanitized);
 
-
-
+        final StringBuilder sb = new StringBuilder((this.text == null)? "" : this.text);
 
         char pre = 0;
-        for (int i = 0; i < text.length() && i < maxTextLength; ++i) {
-            final char c = text.charAt(i);
-            if (c != ' ' || pre != ' ') {
-                this.text.append(c);
+        for (int i = 0; i < sanitized.length() && i < maxTextLength; i++) {
+            final char c = sanitized.charAt(i);
+            if ((c != ' ') || (pre != ' ')) {
+                sb.append(c);
             }
+
             pre = c;
         }
-    }*/
+
+        this.text = sb.toString();
+        languageProbabilities = null;
+    }
 
     /**
-     * Cleaning text to detect
+     * Perform text cleanup
      * (eliminate URL, e-mail address and Latin sentence if it is not written in Latin alphabet)
      */
-    /*private void cleaningText() {
+    private void cleanupText() {
         int latinCount = 0;
         int nonLatinCount = 0;
 
-        for (int i = 0; i < text.length(); ++i) {
+        for (int i = 0; i < text.length(); i++) {
             final char c = text.charAt(i);
             if (c <= 'z' && c >= 'A') {
-                ++latinCount;
-            } else if (c >= '\u0300' && !Objects.equals(UnicodeBlock.of(c), UnicodeBlock.LATIN_EXTENDED_ADDITIONAL)) {
-                ++nonLatinCount;
+                latinCount++;
+            } else if ((c >= '\u0300') && !Objects.equals(UnicodeBlock.of(c), UnicodeBlock.LATIN_EXTENDED_ADDITIONAL)) {
+                nonLatinCount++;
             }
-        }
-        if (latinCount * 2 < nonLatinCount) {
-            final StringBuilder textWithoutLatin = new StringBuilder();
-            for (int i = 0; i < text.length(); ++i) {
-                final char c = text.charAt(i);
-                if (c > 'z' || c < 'A') textWithoutLatin.append(c);
-            }
-            text = textWithoutLatin;
         }
 
-    }*/
+        if ((latinCount << 1) < nonLatinCount) {
+            final StringBuilder textWithoutLatin = new StringBuilder(text.length());
+            for (int i = 0; i < text.length(); i++) {
+                final char c = text.charAt(i);
+
+                if (c > 'z' || c < 'A') {
+                    textWithoutLatin.append(c);
+                }
+            }
+
+            text = textWithoutLatin.toString();
+        }
+    }
 
     /**
      * Detect language of the target text and return the language name which has the highest probability.
      *
-     * @return detected language name which has most probability.
-     * @throws LangDetectException code = ErrorCode.CANNOT_DETECT : Can't detect because of no valid features in text
+     * @return                      Detected language name which has most probability.
+     * @throws LangDetectException  code = ErrorCode.CANNOT_DETECT : Can't detect because of no valid features in text
      */
     public String detect() throws LangDetectException {
         final List<Language> probabilities = getProbabilities();
-        if (!probabilities.isEmpty()) return probabilities.get(0).getLanguage();
-        return UNKNOWN_LANG;
+        final Optional<Language> result = probabilities.stream().findFirst();
+
+        return result.isPresent()? result.get().getLanguage() : UNKNOWN_LANG;
     }
 
     /**
      * Get language candidates which have high probabilities
      *
-     * @return possible languages list (whose probabilities are over PROB_THRESHOLD, ordered by probabilities descendently)
-     * @throws LangDetectException code = ErrorCode.CANNOT_DETECT : Can't detect because of no valid features in text
+     * @return                      Possible languages list (whose probabilities are over PROB_THRESHOLD, ordered by probabilities descendently)
+     * @throws LangDetectException  code = ErrorCode.CANNOT_DETECT : Can't detect because of no valid features in text
      */
     public List<Language> getProbabilities() throws LangDetectException {
-        if (langprob == null) {
+        if (languageProbabilities == null) {
             detectBlock();
         }
 
-        return sortProbability(langprob);
+        return sortProbabilities(languageProbabilities);
     }
     
     private void detectBlock() throws LangDetectException {
-        //cleaningText();
+        cleanupText();
+
         final List<String> ngrams = extractNGrams();
-        if (ngrams.isEmpty())
+        if (ngrams.isEmpty()) {
             throw new LangDetectException(ErrorCode.CANNOT_DETECT, "no features in text");
+        }
 
-        langprob = new double[languageList.size()];
+        languageProbabilities = new double[languageList.size()];
+        final int nGramCount = ngrams.size();
 
-        final Random rand = new Random();
-        for (int t = 0; t < TRIAL_COUNT; ++t) {
-            final double[] prob = initProbability();
+        for (int t = 0; t < TRIAL_COUNT; t++) {
+            final double[] prob = initProbabilities();
             final double alpha = this.alpha + rand.nextGaussian() * ALPHA_WIDTH;
 
-            for (int i = 0; ; ++i) {
-                final int r = rand.nextInt(ngrams.size());
-                updateLangProb(prob, ngrams.get(r), alpha);
-                if (i % 5 == 0) {
-                    if (normalizeProb(prob) > CONV_THRESHOLD || i >= ITERATION_LIMIT) break;
-                    if (verbose) System.out.println("> " + sortProbability(prob));
+            for (int i = 0; ; i++) {
+                final int r = rand.nextInt(nGramCount);
+                final String nGram = ngrams.get(r);
+                updateLanguageProbilities(prob, nGram, alpha);
+
+                if ((i % CHECK_TRESHOLDS_ITERATION) == 0) {
+                    if ((normalizeProbabilities(prob) > CONV_THRESHOLD) || (i >= ITERATION_LIMIT)){
+                        break;
+                    }
+
+                    if (verbose) {
+                        final List<Language> sortedProbs = sortProbabilities(prob);
+                        LOGGER.debug("> {}", sortedProbs);
+                    }
                 }
             }
-            for (int j = 0; j < langprob.length; ++j) langprob[j] += prob[j] / TRIAL_COUNT;
-            if (verbose) System.out.println("==> " + sortProbability(prob));
+
+            for (int i = 0; i < languageProbabilities.length; i++) {
+                languageProbabilities[i] += prob[i] / TRIAL_COUNT;
+            }
+
+            if (verbose) {
+                final List<Language> sortedProbs = sortProbabilities(prob);
+                LOGGER.debug("==> {}", sortedProbs);
+            }
         }
     }
 
-    private double[] initProbability() {
+    private double[] initProbabilities() {
         final double[] prob = new double[languageList.size()];
+
         if (priorMap != null) {
-            for (int i = 0; i < prob.length; ++i) prob[i] = priorMap[i];
+            System.arraycopy(priorMap, 0, prob, 0, prob.length);
         } else {
-            for (int i = 0; i < prob.length; ++i) prob[i] = 1.0 / languageList.size();
+            for (int i = 0; i < prob.length; i++) {
+                prob[i] = 1.0 / languageList.size();
+            }
         }
+
         return prob;
     }
 
     private List<String> extractNGrams() {
         final List<String> list = Lists.newArrayList();
         final NGram ngram = new NGram();
-        for (int i = 0; i < text.length(); ++i) {
-            ngram.addChar(text.charAt(i));
-            for (int n = 1; n <= NGram.MAX_NGRAM_LENGTH; ++n) {
+
+        final int l = text.length();
+        for (int i = 0; i < l; i++) {
+            final char ch = text.charAt(i);
+            ngram.addChar(ch);
+
+            for (int n = 1; n <= NGram.MAX_NGRAM_LENGTH; n++) {
                 final String w = ngram.get(n);
-                if (w != null && languageProbabilityMap.containsKey(w)) list.add(w);
+
+                if ((w != null) && languageProbabilityMap.containsKey(w)) {
+                    list.add(w);
+                }
             }
         }
+
         return list;
     }
 
-    private boolean updateLangProb(final double[] prob, final String word, final double alpha) {
-        if (word == null || !languageProbabilityMap.containsKey(word)) return false;
+    private boolean updateLanguageProbilities(final double[] prob, final String word, final double alpha) {
+        if ((word == null) || !languageProbabilityMap.containsKey(word)) {
+            return false;
+        }
 
         final double[] langProbMap = languageProbabilityMap.get(word);
         if (verbose) {
-            System.out.println(word + "(" + escapeJava(word) + "):" + wordProbToString(langProbMap));
+            final String escaped = escapeJava(word);
+            final String probs = wordProbToString(langProbMap);
+
+            LOGGER.debug("{} ({}): {}", word, escaped, probs);
         }
 
         final double weight = alpha / BASE_FREQ;
-        for (int i = 0; i < prob.length; ++i) {
+        for (int i = 0; i < prob.length; i++) {
             prob[i] *= weight + langProbMap[i];
         }
+
         return true;
     }
 
     private String wordProbToString(final double[] prob) {
-        final Formatter formatter = new Formatter();
-        for (int j = 0; j < prob.length; ++j) {
-            final double p = prob[j];
-            if (p >= 0.00001) {
-                formatter.format(" %s:%.5f", languageList.get(j), p);
+        try (final Formatter formatter = new Formatter()) {
+            for (int j = 0; j < prob.length; j++) {
+                final double p = prob[j];
+                if (p >= MINIMAL_PROBABILITY_TO_DISPLAY) {
+                    final String s = languageList.get(j);
+                    formatter.format(" %s:%.5f", s, p);
+                }
             }
+
+            return formatter.toString();
         }
-        final String string = formatter.toString();
-        formatter.close();
-        return string;
     }
 
-    private static double normalizeProb(final double[] prob) {
-        double maxp = 0;
-        double sump = 0;
-        for (int i = 0; i < prob.length; ++i) sump += prob[i];
-        for (int i = 0; i < prob.length; ++i) {
-            final double p = prob[i] / sump;
-            if (maxp < p) maxp = p;
+    private static double normalizeProbabilities(final double[] prob) {
+        double probabilitySum = 0;
+        for (final double d : prob) {
+            probabilitySum += d;
+        }
+
+        double maxProbability = 0;
+        for (int i = 0; i < prob.length; i++) {
+            final double p = prob[i] / probabilitySum;
+            if (maxProbability < p) {
+                maxProbability = p;
+            }
+
             prob[i] = p;
         }
-        return maxp;
+
+        return maxProbability;
     }
 
-    private List<Language> sortProbability(final double[] prob) {
+    private List<Language> sortProbabilities(final double[] prob) {
         final List<Language> list = Lists.newArrayList();
-        for (int j = 0; j < prob.length; ++j) {
+        for (int j = 0; j < prob.length; j++) {
             final double p = prob[j];
+            final String jth = languageList.get(j);
+
             if (p > PROB_THRESHOLD) {
-                for (int i = 0; i <= list.size(); ++i) {
-                    if (i == list.size() || list.get(i).getProbability() < p) {
-                        list.add(i, new Language(languageList.get(j), p));
+                for (int i = 0; i <= list.size(); i++) {
+                    if ((i == list.size()) || (list.get(i).getProbability() < p)) {
+                        list.add(i, new Language(jth, p));
                         break;
                     }
                 }

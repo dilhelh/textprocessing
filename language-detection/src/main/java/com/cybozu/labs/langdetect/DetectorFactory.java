@@ -3,6 +3,7 @@ package com.cybozu.labs.langdetect;
 import com.cybozu.labs.langdetect.util.LangProfile;
 import com.cybozu.labs.langdetect.util.NGram;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.kgusarov.textprocessing.langdetect.LangProfileDocument;
@@ -17,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Language Detector Factory Class
@@ -76,6 +79,11 @@ public class DetectorFactory {
         }
     }
 
+    @VisibleForTesting
+    DetectorFactory() {
+        // Used only for tests
+    }
+
     /**
      * Merge information from language profile instance into this factory
      *
@@ -84,7 +92,8 @@ public class DetectorFactory {
      * @param index                     Index of language profile being added
      * @throws LangDetectException
      */
-    private void addProfile(final LangProfile profile, final int index, final int languageCount) {
+    @VisibleForTesting
+    void addProfile(final LangProfile profile, final int index, final int languageCount) {
         final String language = profile.getName();
         if (languages.contains(language)) {
             throw new LangDetectException(ErrorCode.DUPLICATE_LANGUAGE, language + " language profile is already defined");
@@ -142,5 +151,9 @@ public class DetectorFactory {
         }
 
         return new Detector(this);
+    }
+
+    public List<String> getLangList() {
+        return unmodifiableList(languages);
     }
 }
