@@ -155,12 +155,17 @@ public class LangProfile {
      *
      * @param text          (Fragmented) Text to extract n-grams
      */
-    public void update(String text) {
-        if (text == null) return;
-        text = NGram.normalizeVietnamese(text);
+    public void update(final String text) {
+        if (text == null) {
+            return;
+        }
+
+        final String normalized = NGram.normalizeVietnamese(text);
         final NGram gram = new NGram();
-        for (int i = 0; i < text.length(); ++i) {
-            final char ch = text.charAt(i);
+        final int length = normalized.length();
+        
+        for (int i = 0; i < length; ++i) {
+            final char ch = normalized.charAt(i);
             gram.addChar(ch);
 
             for (int n = 1; n <= NGram.MAX_NGRAM_LENGTH; ++n) {

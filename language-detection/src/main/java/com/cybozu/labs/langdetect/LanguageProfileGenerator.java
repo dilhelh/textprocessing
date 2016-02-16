@@ -25,7 +25,10 @@ import org.slf4j.LoggerFactory;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
@@ -45,20 +48,20 @@ public class LanguageProfileGenerator {
     /**
      * Load Wikipedia abstract database file and generate its language profile
      *
-     * @param lang Target language name
-     * @param file Target database file path
+     * @param lang      Target language name
+     * @param is        Training data source
+     * @param isGzip    Determines if training data is compressed
      * @return Language profile document instance
      * @throws LangDetectException
      */
-    public LangProfileDocument loadFromWikipediaAbstract(final String lang, final File file) throws LangDetectException {
+    public LangProfileDocument loadFromWikipediaAbstract(final String lang, final InputStream is,
+                                                         final boolean isGzip) throws LangDetectException {
         final LangProfile profile = new LangProfile(lang);
-        final String fileName = file.getName();
         final XMLInputFactory factory = XMLInputFactory.newInstance();
-        final boolean isGzip = fileName.endsWith(".gz");
 
         try (
-                final InputStream is = openFile(file, isGzip);
-                final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+                final InputStream s = wrapIfNeeded(is, isGzip);
+                final InputStreamReader isr = new InputStreamReader(s, StandardCharsets.UTF_8);
                 final BufferedReader br = new BufferedReader(isr)
         ) {
             final XMLStreamReader reader = factory.createXMLStreamReader(br);
@@ -73,19 +76,16 @@ public class LanguageProfileGenerator {
             final int count = tagExtractor.count();
             LOGGER.debug(lang + ':' + count);
         } catch (final IOException e) {
-            throw new LangDetectException(ErrorCode.CANNOT_OPEN_TRAIN_DATA,
-                    "Cannot open training database file '" + fileName + '\'', e);
+            throw new LangDetectException(ErrorCode.CANNOT_OPEN_TRAIN_DATA, "Cannot open training database", e);
         } catch (final XMLStreamException e) {
-            throw new LangDetectException(ErrorCode.TRAIN_DATA_FORMAT,
-                    "Training database file '" + fileName + "' is an invalid XML.", e);
+            throw new LangDetectException(ErrorCode.TRAIN_DATA_FORMAT, "Training database is an invalid XML", e);
         }
 
         return profile.toDocument();
     }
 
     @SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
-    private InputStream openFile(final File file, final boolean isGzip) throws IOException {
-        final InputStream is = new FileInputStream(file);
+    private static InputStream wrapIfNeeded(final InputStream is, final boolean isGzip) throws IOException {
         return isGzip ? new GZIPInputStream(is) : is;
     }
 
@@ -108,17 +108,15 @@ public class LanguageProfileGenerator {
     /**
      * Load text file with UTF-8 and generate its language profile
      *
-     * @param lang Target language name
-     * @param file Target file path
+     * @param lang      Target language name
+     * @param is        Training data source
      * @return Language profile document instance
      * @throws LangDetectException
      */
-    public LangProfileDocument loadFromText(final String lang, final File file) throws LangDetectException {
+    public LangProfileDocument loadFromText(final String lang, final InputStream is) throws LangDetectException {
         final LangProfile profile = new LangProfile(lang);
-        final String fileName = file.getName();
 
         try (
-                final InputStream is = new FileInputStream(file);
                 final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
                 final BufferedReader br = new BufferedReader(isr)
         ) {
@@ -131,8 +129,7 @@ public class LanguageProfileGenerator {
 
             LOGGER.debug(lang + ':' + count);
         } catch (final IOException e) {
-            throw new LangDetectException(ErrorCode.CANNOT_OPEN_TRAIN_DATA,
-                    "Cannot open training database file '" + fileName + '\'', e);
+            throw new LangDetectException(ErrorCode.CANNOT_OPEN_TRAIN_DATA, "Cannot open training database ", e);
         }
 
         return profile.toDocument();

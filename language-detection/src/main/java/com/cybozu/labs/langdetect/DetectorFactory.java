@@ -68,7 +68,7 @@ public class DetectorFactory {
      * Create new {@code DetectorFactory}
      *
      * @param shortMessages             Should this detector factory use short message profiles
-     * @throws LangDetectException      In case ini
+     * @throws LangDetectException
      */
     public DetectorFactory(final boolean shortMessages) {
         final Pattern resourceFilter = shortMessages ? SHORT_MESSAGE_RESOURCES : LONG_MESSAGE_RESOURCES;

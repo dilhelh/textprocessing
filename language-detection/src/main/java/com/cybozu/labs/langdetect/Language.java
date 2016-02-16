@@ -12,12 +12,12 @@ package com.cybozu.labs.langdetect;
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * See the License for the specific code governing permissions and
  * limitations under the License.
  */
 
 /**
- * {@link Language} is to store the detected language.
+ * {@link Language} is to store the detected code.
  * {@link Detector#getProbabilities()} returns an {@link java.util.List} of {@link Language}s.
  *
  * @author Nakatani Shuyo
@@ -25,20 +25,20 @@ package com.cybozu.labs.langdetect;
  * @see Detector#getProbabilities()
  */
 public class Language {
-    private String language;
+    private String code;
     private double probability;
 
-    public Language(final String language, final double probability) {
-        this.language = language;
+    public Language(final String code, final double probability) {
+        this.code = code;
         this.probability = probability;
     }
 
-    public String getLanguage() {
-        return language;
+    public String getCode() {
+        return code;
     }
 
-    public void setLanguage(final String language) {
-        this.language = language;
+    public void setCode(final String code) {
+        this.code = code;
     }
 
     public double getProbability() {
@@ -52,7 +52,7 @@ public class Language {
     @Override
     public String toString() {
         return "Language{" +
-                "language='" + language + '\'' +
+                "code='" + code + '\'' +
                 ", probability=" + probability +
                 '}';
     }

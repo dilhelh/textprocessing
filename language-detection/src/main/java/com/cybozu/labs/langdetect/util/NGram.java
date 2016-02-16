@@ -221,7 +221,7 @@ public class NGram {
             chars = chars.substring(1);
         }
 
-        chars += normalized;
+        chars += Character.toString(normalized);
 
         if (Character.isUpperCase(normalized)) {
             if (Character.isUpperCase(lastchar)) {
@@ -250,15 +250,19 @@ public class NGram {
         }
 
         if (n == 1) {
-            final char ch = chars.charAt(len - 1);
-            if (ch == ' ') {
-                return null;
-            }
-
-            return Character.toString(ch);
+            return getSingleCharNGram(len);
         }
 
         return chars.substring(len - n, len);
+    }
+
+    private String getSingleCharNGram(final int len) {
+        final char ch = chars.charAt(len - 1);
+        if (ch == ' ') {
+            return null;
+        }
+
+        return Character.toString(ch);
     }
 
     /**
@@ -273,16 +277,12 @@ public class NGram {
             return ' ';
         }
 
-        if (Objects.equals(block, BASIC_LATIN)) {
-            if (ch < 'A' || (ch < 'a' && ch > 'Z') || ch > 'z') {
-                return ' ';
-            }
+        if (Objects.equals(block, BASIC_LATIN) && (ch < 'A' || (ch < 'a' && ch > 'Z') || ch > 'z')) {
+            return ' ';
         }
 
-        if (Objects.equals(block, LATIN_1_SUPPLEMENT)) {
-            if (LATIN1_EXCLUDED.indexOf(ch) >= 0) {
-                return ' ';
-            }
+        if (Objects.equals(block, LATIN_1_SUPPLEMENT) && (LATIN1_EXCLUDED.indexOf(ch) >= 0)) {
+            return ' ';
         }
 
         if (Objects.equals(block, LATIN_EXTENDED_B)) {
@@ -298,17 +298,13 @@ public class NGram {
             }
         }
 
-        if (Objects.equals(block, ARABIC)) {
-            if (ch == '\u06cc') {
-                // Farsi yeh => Arabic yeh
-                return '\u064a';
-            }
+        if (Objects.equals(block, ARABIC) && (ch == '\u06cc')) {
+            // Farsi yeh => Arabic yeh
+            return '\u064a';
         }
 
-        if (Objects.equals(block, LATIN_EXTENDED_ADDITIONAL)) {
-            if (ch >= '\u1ea0') {
-                return '\u1ec3';
-            }
+        if (Objects.equals(block, LATIN_EXTENDED_ADDITIONAL) && (ch >= '\u1ea0')) {
+            return '\u1ec3';
         }
 
         if (Objects.equals(block, HIRAGANA)) {
@@ -323,10 +319,8 @@ public class NGram {
             return '\u3105';
         }
 
-        if (Objects.equals(block, CJK_UNIFIED_IDEOGRAPHS)) {
-            if (CJK_MAP.containsKey(ch)) {
-                return CJK_MAP.get(ch);
-            }
+        if (Objects.equals(block, CJK_UNIFIED_IDEOGRAPHS) && CJK_MAP.containsKey(ch)) {
+            return CJK_MAP.get(ch);
         }
 
         if (Objects.equals(block, HANGUL_SYLLABLES)) {
@@ -339,10 +333,12 @@ public class NGram {
     /**
      * Normalizer for Vietnamese.
      * Normalize Alphabet + Diacritical Mark(U+03xx) into U+1Exx .
+     * We have to use {@code StringBuffer} here since it simplifies the code
      *
      * @param text      Vietnamese text to be normalized
      * @return          Normalized text
      */
+    @SuppressWarnings("squid:S1149")
     public static String normalizeVietnamese(final String text) {
         final Matcher m = ALPHABET_WITH_DMARK.matcher(text);
         final StringBuffer sb = new StringBuffer();

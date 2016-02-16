@@ -3,7 +3,8 @@ package com.cybozu.labs.langdetect;
 import org.junit.Test;
 import org.kgusarov.textprocessing.langdetect.LangProfileDocument;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -17,12 +18,12 @@ public class LanguageProfileGeneratorTest {
 
     @Test
     public void testLoadFromWikipediaAbstract() throws Exception {
-        testProfileGeneration("lorem.xml", GENERATOR::loadFromWikipediaAbstract);
+        testProfileGeneration("lorem.xml", this::wikipediaRawTrain);
     }
 
     @Test
     public void testLoadFromWikipediaAbstractGzip() throws Exception {
-        testProfileGeneration("lorem.xml.gz", GENERATOR::loadFromWikipediaAbstract);
+        testProfileGeneration("lorem.xml.gz", this::wikipediaGzipTrain);
     }
 
     @Test
@@ -30,9 +31,17 @@ public class LanguageProfileGeneratorTest {
         testProfileGeneration("lorem.txt", GENERATOR::loadFromText);
     }
 
-    private void testProfileGeneration(final String fileName, final BiFunction<String, File, LangProfileDocument> method) {
-        final File file = resolveFile(fileName);
-        final LangProfileDocument document = method.apply("lr-ips", file);
+    private LangProfileDocument wikipediaGzipTrain(final String lang, final InputStream is) {
+        return GENERATOR.loadFromWikipediaAbstract(lang, is, true);
+    }
+
+    private LangProfileDocument wikipediaRawTrain(final String lang, final InputStream is) {
+        return GENERATOR.loadFromWikipediaAbstract(lang, is, false);
+    }
+
+    private void testProfileGeneration(final String fileName, final BiFunction<String, InputStream, LangProfileDocument> method) throws IOException {
+        final InputStream is = open(fileName);
+        final LangProfileDocument document = method.apply("lr-ips", is);
 
         assertNotNull(document);
 
@@ -45,14 +54,13 @@ public class LanguageProfileGeneratorTest {
         assertThat(frequencies, hasKey("sum"));
     }
 
-    private File resolveFile(final String fileName) {
+    private InputStream open(final String fileName) throws IOException {
         final URL resource = Thread.currentThread().getContextClassLoader().getResource(fileName);
 
         if (resource == null) {
             throw new NullPointerException();
         }
 
-        final String file = resource.getFile();
-        return new File(file);
+        return resource.openStream();
     }
 }

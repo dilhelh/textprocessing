@@ -239,7 +239,7 @@ public class Detector {
         final List<Language> probabilities = getProbabilities();
         final Optional<Language> result = probabilities.stream().findFirst();
 
-        return result.isPresent()? result.get().getLanguage() : UNKNOWN_LANG;
+        return result.isPresent()? result.get().getCode() : UNKNOWN_LANG;
     }
 
     /**
@@ -268,34 +268,38 @@ public class Detector {
         final int nGramCount = ngrams.size();
 
         for (int t = 0; t < TRIAL_COUNT; t++) {
-            final double[] prob = initProbabilities();
-            final double alpha = this.alpha + rand.nextGaussian() * ALPHA_WIDTH;
+            performTrial(ngrams, nGramCount);
+        }
+    }
 
-            for (int i = 0; ; i++) {
-                final int r = rand.nextInt(nGramCount);
-                final String nGram = ngrams.get(r);
-                updateLanguageProbilities(prob, nGram, alpha);
+    private void performTrial(final List<String> ngrams, final int nGramCount) {
+        final double[] prob = initProbabilities();
+        final double a = this.alpha + rand.nextGaussian() * ALPHA_WIDTH;
 
-                if ((i % CHECK_TRESHOLDS_ITERATION) == 0) {
-                    if ((normalizeProbabilities(prob) > CONV_THRESHOLD) || (i >= ITERATION_LIMIT)){
-                        break;
-                    }
+        for (int i = 0; ; i++) {
+            final int r = rand.nextInt(nGramCount);
+            final String nGram = ngrams.get(r);
+            updateLanguageProbilities(prob, nGram, a);
 
-                    if (verbose) {
-                        final List<Language> sortedProbs = sortProbabilities(prob);
-                        LOGGER.debug("> {}", sortedProbs);
-                    }
+            if ((i % CHECK_TRESHOLDS_ITERATION) == 0) {
+                if ((normalizeProbabilities(prob) > CONV_THRESHOLD) || (i >= ITERATION_LIMIT)){
+                    break;
+                }
+
+                if (verbose) {
+                    final List<Language> sortedProbs = sortProbabilities(prob);
+                    LOGGER.debug("> {}", sortedProbs);
                 }
             }
+        }
 
-            for (int i = 0; i < languageProbabilities.length; i++) {
-                languageProbabilities[i] += prob[i] / TRIAL_COUNT;
-            }
+        for (int i = 0; i < languageProbabilities.length; i++) {
+            languageProbabilities[i] += prob[i] / TRIAL_COUNT;
+        }
 
-            if (verbose) {
-                final List<Language> sortedProbs = sortProbabilities(prob);
-                LOGGER.debug("==> {}", sortedProbs);
-            }
+        if (verbose) {
+            final List<Language> sortedProbs = sortProbabilities(prob);
+            LOGGER.debug("==> {}", sortedProbs);
         }
     }
 
@@ -391,18 +395,22 @@ public class Detector {
     private List<Language> sortProbabilities(final double[] prob) {
         final List<Language> list = Lists.newArrayList();
         for (int j = 0; j < prob.length; j++) {
-            final double p = prob[j];
-            final String jth = languageList.get(j);
+            processProbability(prob[j], list, j);
+        }
 
-            if (p > PROB_THRESHOLD) {
-                for (int i = 0; i <= list.size(); i++) {
-                    if ((i == list.size()) || (list.get(i).getProbability() < p)) {
-                        list.add(i, new Language(jth, p));
-                        break;
-                    }
+        return list;
+    }
+
+    private void processProbability(final double probability, final List<Language> list, final int j) {
+        final String jth = languageList.get(j);
+
+        if (probability > PROB_THRESHOLD) {
+            for (int i = 0; i <= list.size(); i++) {
+                if ((i == list.size()) || (list.get(i).getProbability() < probability)) {
+                    list.add(i, new Language(jth, probability));
+                    break;
                 }
             }
         }
-        return list;
     }
 }
