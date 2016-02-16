@@ -47,6 +47,27 @@
         <tag>HEAD</tag>
     </scm>
 
+    <distributionManagement>
+        <repository>
+            <id>foodhunter.lv</id>
+            <name>Artifactory @ FoodHunter.lv</name>
+            <url>http://foodhunter.lv:8082/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>foodhunter.lv</id>
+            <name>Artifactory @ FoodHunter.lv</name>
+            <url>http://foodhunter.lv:8082/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>foodhunter.lv</id>
+            <name>Artifactory @ FoodHunter.lv</name>
+            <url>http://foodhunter.lv:8082/artifactory/repo</url>
+        </repository>
+    </repositories>
+
     <build>
         <plugins>
             <plugin>

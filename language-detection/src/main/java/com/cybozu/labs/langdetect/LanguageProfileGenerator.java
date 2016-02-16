@@ -26,109 +26,115 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
+
+import static javax.xml.stream.XMLStreamConstants.*;
 
 /**
  * Load Wikipedia's abstract XML as corpus and
  * generate its language profile in JSON format.
- * 
+ *
  * @author Nakatani Shuyo
  * @author Konstantin Gusarov
  */
 public class LanguageProfileGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(LanguageProfileGenerator.class);
-
+    private static final int TAG_THRESHOLD = 100;
 
     /**
      * Load Wikipedia abstract database file and generate its language profile
      *
-     * @param lang          Target language name
-     * @param file          Target database file path
-     * @return              Language profile document instance
-     * @throws LangDetectException 
+     * @param lang Target language name
+     * @param file Target database file path
+     * @return Language profile document instance
+     * @throws LangDetectException
      */
     public LangProfileDocument loadFromWikipediaAbstract(final String lang, final File file) throws LangDetectException {
-
         final LangProfile profile = new LangProfile(lang);
+        final String fileName = file.getName();
+        final XMLInputFactory factory = XMLInputFactory.newInstance();
+        final boolean isGzip = fileName.endsWith(".gz");
 
-        BufferedReader br = null;
-        try {
-            InputStream is = new FileInputStream(file);
-            if (file.getName().endsWith(".gz")) is = new GZIPInputStream(is);
-            br = new BufferedReader(new InputStreamReader(is, "utf-8"));
+        try (
+                final InputStream is = openFile(file, isGzip);
+                final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+                final BufferedReader br = new BufferedReader(isr)
+        ) {
+            final XMLStreamReader reader = factory.createXMLStreamReader(br);
+            final TagExtractor tagExtractor = new TagExtractor("abstract", TAG_THRESHOLD);
 
-            final TagExtractor tagextractor = new TagExtractor("abstract", 100);
+            while (reader.hasNext()) {
+                final int next = reader.next();
 
-            XMLStreamReader reader = null;
-            try {
-                final XMLInputFactory factory = XMLInputFactory.newInstance();
-                reader = factory.createXMLStreamReader(br);
-                while (reader.hasNext()) {
-                    switch (reader.next()) {
-                    case XMLStreamReader.START_ELEMENT:
-                        tagextractor.setTag(reader.getName().toString());
-                        break;
-                    case XMLStreamReader.CHARACTERS:
-                        tagextractor.add(reader.getText());
-                        break;
-                    case XMLStreamReader.END_ELEMENT:
-                        final String text = tagextractor.closeTag();
-                        if (text != null) profile.update(text);
-                        break;
-                    }
-                }
-            } catch (final XMLStreamException e) {
-                throw new LangDetectException(ErrorCode.TRAIN_DATA_FORMAT, "Training database file '" + file.getName() + "' is an invalid XML.");
-            } finally {
-                try {
-                    if (reader != null) reader.close();
-                } catch (final XMLStreamException e) {}
+                processElement(profile, reader, tagExtractor, next);
             }
-            System.out.println(lang + ":" + tagextractor.count());
 
+            final int count = tagExtractor.count();
+            LOGGER.debug(lang + ':' + count);
         } catch (final IOException e) {
-            throw new LangDetectException(ErrorCode.CANNOT_OPEN_TRAIN_DATA, "Can't open training database file '" + file.getName() + "'");
-        } finally {
-            try {
-                if (br != null) br.close();
-            } catch (final IOException e) {}
+            throw new LangDetectException(ErrorCode.CANNOT_OPEN_TRAIN_DATA,
+                    "Cannot open training database file '" + fileName + '\'', e);
+        } catch (final XMLStreamException e) {
+            throw new LangDetectException(ErrorCode.TRAIN_DATA_FORMAT,
+                    "Training database file '" + fileName + "' is an invalid XML.", e);
         }
+
         return profile.toDocument();
     }
 
+    @SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
+    private InputStream openFile(final File file, final boolean isGzip) throws IOException {
+        final InputStream is = new FileInputStream(file);
+        return isGzip ? new GZIPInputStream(is) : is;
+    }
+
+    private void processElement(final LangProfile profile, final XMLStreamReader reader,
+                                final TagExtractor tagExtractor, final int next) {
+        if (next == START_ELEMENT) {
+            final String tag = reader.getName().toString();
+            tagExtractor.setTag(tag);
+        } else if (next == CHARACTERS) {
+            final String tagText = reader.getText();
+            tagExtractor.add(tagText);
+        } else if (next == END_ELEMENT) {
+            final String text = tagExtractor.closeTag();
+            if (text != null) {
+                profile.update(text);
+            }
+        }
+    }
 
     /**
      * Load text file with UTF-8 and generate its language profile
      *
-     * @param lang              Target language name
-     * @param file              Target file path
-     * @return                  Language profile document instance
-     * @throws LangDetectException 
+     * @param lang Target language name
+     * @param file Target file path
+     * @return Language profile document instance
+     * @throws LangDetectException
      */
-    public static LangProfileDocument loadFromText(final String lang, final File file) throws LangDetectException {
-
+    public LangProfileDocument loadFromText(final String lang, final File file) throws LangDetectException {
         final LangProfile profile = new LangProfile(lang);
+        final String fileName = file.getName();
 
-        BufferedReader is = null;
-        try {
-            is = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
-
+        try (
+                final InputStream is = new FileInputStream(file);
+                final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+                final BufferedReader br = new BufferedReader(isr)
+        ) {
             int count = 0;
-            while (is.ready()) {
-                final String line = is.readLine();
+            while (br.ready()) {
+                final String line = br.readLine();
                 profile.update(line);
-                ++count;
+                count++;
             }
 
-            System.out.println(lang + ":" + count);
-
+            LOGGER.debug(lang + ':' + count);
         } catch (final IOException e) {
-            throw new LangDetectException(ErrorCode.CANNOT_OPEN_TRAIN_DATA, "Can't open training database file '" + file.getName() + "'");
-        } finally {
-            try {
-                if (is != null) is.close();
-            } catch (final IOException e) {}
+            throw new LangDetectException(ErrorCode.CANNOT_OPEN_TRAIN_DATA,
+                    "Cannot open training database file '" + fileName + '\'', e);
         }
+
         return profile.toDocument();
     }
 }
