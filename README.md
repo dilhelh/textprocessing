@@ -28,13 +28,13 @@ final String detectedLang = detector.detect();
 Set of various tools for performing text analysis
 
 ###### TermExtractionService
-Utilizes Language detector and [Apache Lucene](https://lucene.apache.org/core/developer.html) for term extraction from an arbitrary string.
+Utilizes Language detector and [Apache Lucene](https://lucene.apache.org/) for term extraction from an arbitrary string.
 Since ```TermExtractionService``` uses the ```DetectorFactory``` it also asks for a ```shortMessages``` parameter when constructing
 an instance. Example usage can be found below:
 ```java
 // Use short message corpus
 final TermExtractionService service = new TermExtractionService(true);
-final List<String> terms = SERVICE.getTerms("Some text to extract terms from");
+final List<String> terms = service.getTerms("Some text to extract terms from");
 ```
 
 ## Thanks to
