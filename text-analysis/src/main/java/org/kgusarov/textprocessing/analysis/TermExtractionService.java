@@ -1,7 +1,7 @@
 package org.kgusarov.textprocessing.analysis;
 
 /*
- * Copyright (C) 2010-2014 Cybozu Labs, 2016 Konstantin Gusarov
+ * Copyright (C) 2016 Konstantin Gusarov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,17 +60,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This service is meant for term extraction from arbitary text by using {@code com.cybozu.labs.langdetect.Detector}
- * and {@code org.apache.lucene.analysis.Analyzer}
- * It performs multiple actions in the following order:
+ * <p>This service is meant for term extraction from arbitary text by using {@code com.cybozu.labs.langdetect.Detector}
+ * and {@code org.apache.lucene.analysis.Analyzer}</p>
+ * <p>It performs multiple actions in the following order:</p>
  * <ul>
  *     <li>Tries to identify the language text is written in by using {@code com.cybozu.labs.langdetect.Detector}</li>
  *     <li>
- *         In case language was successfully detected and appropriate {@code org.apache.lucene.analysis.Analyzer}
- *         can be found it is being used to produce term stream that is considered result of the term extraction
+ *          In case language was successfully detected and appropriate {@code org.apache.lucene.analysis.Analyzer}
+ *          can be found it is being used to produce term stream that is considered result of the term extraction
  *     </li>
  *     <li>
- *         Otherwise {@code org.apache.lucene.analysis.standard.StandardAnalyzer} is being used for term stream production
+ *          Otherwise {@code org.apache.lucene.analysis.standard.StandardAnalyzer} is being used for term stream production
  *     </li>
  * </ul>
  *

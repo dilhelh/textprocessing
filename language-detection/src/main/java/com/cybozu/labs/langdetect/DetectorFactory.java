@@ -38,16 +38,13 @@ import java.util.stream.Collectors;
 import static java.util.Collections.unmodifiableList;
 
 /**
- * Language Detector Factory Class
- * <p/>
- * This class manages an initialization and constructions of {@link Detector}.
- * <p/>
- * When the language detection,
+ * <p>Language Detector Factory Class</p>
+ * <p>This class manages an initialization and constructions of {@link Detector}.</p>
+ * <p>When the language detection,
  * construct Detector instance via {@link DetectorFactory#create()}.
- * See also {@link Detector}'s sample code.
- * <p/>
+ * See also {@link Detector}'s sample code.</p>
  * <ul>
- * <li>4x faster improvement based on Elmer Garduno's code. Thanks!</li>
+ *  <li>4x faster improvement based on Elmer Garduno's code. Thanks!</li>
  * </ul>
  *
  * @author Nakatani Shuyo
@@ -68,7 +65,7 @@ public class DetectorFactory {
      * Create new {@code DetectorFactory}
      *
      * @param shortMessages             Should this detector factory use short message profiles
-     * @throws LangDetectException
+     * @throws LangDetectException      In case language profiles weren't read for some reason
      */
     public DetectorFactory(final boolean shortMessages) {
         final Pattern resourceFilter = shortMessages ? SHORT_MESSAGE_RESOURCES : LONG_MESSAGE_RESOURCES;
@@ -106,7 +103,7 @@ public class DetectorFactory {
      * @param profile                   Language profile to be merged
      * @param languageCount             Total amount of language profiles
      * @param index                     Index of language profile being added
-     * @throws LangDetectException
+     * @throws LangDetectException      In case language profile is already defined or contains invalid N-Grams
      */
     @VisibleForTesting
     void addProfile(final LangProfile profile, final int index, final int languageCount) {
@@ -141,8 +138,8 @@ public class DetectorFactory {
     /**
      * Construct Detector instance
      *
-     * @return          Detector instance
-     * @throws          LangDetectException
+     * @return                              Detector instance
+     * @throws LangDetectException          In case factory contains no language profiles
      */
     public Detector create() {
         return createDetector();
@@ -151,9 +148,9 @@ public class DetectorFactory {
     /**
      * Construct Detector instance with smoothing parameter
      *
-     * @param alpha         smoothing parameter (default value = 0.5)
-     * @return              Detector instance
-     * @throws              LangDetectException
+     * @param alpha                     Smoothing parameter (default value = 0.5)
+     * @return                          Detector instance
+     * @throws LangDetectException      In case factory contains no language profiles
      */
     public Detector create(final double alpha) {
         final Detector detector = createDetector();

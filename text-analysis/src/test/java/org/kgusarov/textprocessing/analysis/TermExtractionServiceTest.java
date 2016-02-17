@@ -7,9 +7,6 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
 
-/**
- * Author: Konstantin Gusarov
- */
 public class TermExtractionServiceTest {
     private static final TermExtractionService SERVICE = new TermExtractionService(true);
 

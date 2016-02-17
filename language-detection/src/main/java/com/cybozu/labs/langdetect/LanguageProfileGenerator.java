@@ -48,11 +48,11 @@ public class LanguageProfileGenerator {
     /**
      * Load Wikipedia abstract database file and generate its language profile
      *
-     * @param lang      Target language name
-     * @param is        Training data source
-     * @param isGzip    Determines if training data is compressed
-     * @return Language profile document instance
-     * @throws LangDetectException
+     * @param lang                  Target language name
+     * @param is                    Training data source
+     * @param isGzip                Determines if training data is compressed
+     * @return                      Language profile document instance
+     * @throws LangDetectException  In case it was impossible to read training database
      */
     public LangProfileDocument loadFromWikipediaAbstract(final String lang, final InputStream is,
                                                          final boolean isGzip) throws LangDetectException {
@@ -108,10 +108,10 @@ public class LanguageProfileGenerator {
     /**
      * Load text file with UTF-8 and generate its language profile
      *
-     * @param lang      Target language name
-     * @param is        Training data source
-     * @return Language profile document instance
-     * @throws LangDetectException
+     * @param lang                      Target language name
+     * @param is                        Training data source
+     * @return                          Language profile document instance
+     * @throws LangDetectException      In case it was impossible to read training database
      */
     public LangProfileDocument loadFromText(final String lang, final InputStream is) throws LangDetectException {
         final LangProfile profile = new LangProfile(lang);

@@ -1,7 +1,7 @@
 package org.kgusarov.textprocessing.analysis;
 
 /*
- * Copyright (C) 2010-2014 Cybozu Labs, 2016 Konstantin Gusarov
+ * Copyright (C) 2016 Konstantin Gusarov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

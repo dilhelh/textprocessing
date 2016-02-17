@@ -28,18 +28,22 @@ import java.util.regex.Pattern;
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
 
 /**
+ * <p>
  * {@link com.cybozu.labs.langdetect.Detector} class is to detect language from specified text.
  * Its instance is able to be constructed via the factory class {@link DetectorFactory}.
- * <p/>
- * After appending a target text to the {@link com.cybozu.labs.langdetect.Detector} instance with {@link #append(java.io.Reader)} or {@link #append(String)},
+ * </p>
+ * <p>
+ * After appending a target text to the {@link com.cybozu.labs.langdetect.Detector} instance with {@link #append(String)},
  * the detector provides the language detection results for target text via {@link #detect()} or {@link #getProbabilities()}.
  * {@link #detect()} method returns a single language name which has the highest probability.
  * {@link #getProbabilities()} methods returns a list of multiple languages and their probabilities.
- * <p/>
+ * </p>
+ * <p>
  * The detector has some parameters for language detection.
  * See {@link #setAlpha(double)}, {@link #setMaxTextLength(int)} and {@link #setPriorMap(java.util.Map)}.
- * <p/>
+ * </p>
  * <pre>
+ * {@code
  * import java.util.List;
  * import com.cybozu.labs.langdetect.Detector;
  * import com.cybozu.labs.langdetect.DetectorFactory;
@@ -58,10 +62,10 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJava;
  *         return detector.getProbabilities();
  *     }
  * }
+ * }
  * </pre>
- * <p/>
  * <ul>
- * <li>4x faster improvement based on Elmer Garduno's code. Thanks!</li>
+ *  <li>4x faster improvement based on Elmer Garduno's code. Thanks!</li>
  * </ul>
  *
  * @author Nakatani Shuyo
@@ -131,8 +135,9 @@ public class Detector {
     /**
      * Set priority information about language probabilities.
      *
-     * @param priorMap      The priority map to set
-     * @throws LangDetectException
+     * @param priorMap                  The priority map to set
+     * @throws LangDetectException      In case one of the probabilities defined in the input map
+     *                                  is not non-negative
      */
     public void setPriorMap(final Map<String, Double> priorMap) throws LangDetectException {
         this.priorMap = new double[languageList.size()];
@@ -233,7 +238,7 @@ public class Detector {
      * Detect language of the target text and return the language name which has the highest probability.
      *
      * @return                      Detected language name which has most probability.
-     * @throws LangDetectException  code = ErrorCode.CANNOT_DETECT : Can't detect because of no valid features in text
+     * @throws LangDetectException  Can't detect because of no valid features in text
      */
     public String detect() throws LangDetectException {
         final List<Language> probabilities = getProbabilities();
@@ -246,7 +251,7 @@ public class Detector {
      * Get language candidates which have high probabilities
      *
      * @return                      Possible languages list (whose probabilities are over PROB_THRESHOLD, ordered by probabilities descendently)
-     * @throws LangDetectException  code = ErrorCode.CANNOT_DETECT : Can't detect because of no valid features in text
+     * @throws LangDetectException  Can't detect because of no valid features in text
      */
     public List<Language> getProbabilities() throws LangDetectException {
         if (languageProbabilities == null) {
