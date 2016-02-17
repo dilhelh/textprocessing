@@ -17,9 +17,13 @@ package org.kgusarov.textprocessing.analysis;
  */
 
 import com.google.common.collect.Sets;
+import com.twitter.Extractor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -41,6 +45,8 @@ public class TextCleanupService {
             0x202d,
             0x202e
     );
+
+    private final Extractor extractor = new Extractor();
 
     /**
      * <p>Removes Unicode characters that are responsible for changing text direction or are simply invisible
@@ -96,6 +102,75 @@ public class TextCleanupService {
 
             sb.append(c);
         }
+
+        return sb.toString();
+    }
+
+    /**
+     * <p>Removes and return Twitter entities (cashtags, hashtags, mentions and urls) from the given string</p>
+     * <p>If {@code cleanupFirst} parameter is set to {@code true} then text is being at first cleaned
+     * from text direction and special invisible symbols</p>
+     *
+     * @param text              Text to remove Twitter entities from
+     * @param cleanupFirst      Should the text be cleaned up from the special symbols before entity extraction
+     * @return                  Text without Twitter entities as well as extracted entities themselves
+     * @see                     TextCleanupService#removeDirectionAndInvisibleChars(String)
+     */
+    public Pair<String, List<Extractor.Entity>> extractTwitterEntities(final String text, final boolean cleanupFirst) {
+        final String input = cleanupFirst? removeDirectionAndInvisibleChars(text) : text;
+        final List<Extractor.Entity> entities = extractor.extractEntitiesWithIndices(input);
+
+        if (entities.isEmpty()) {
+            return Pair.of(input, Collections.emptyList());
+        }
+
+        final String s = removeTwitterEntitites(input, entities);
+        return Pair.of(s, entities);
+    }
+
+    /**
+     * <p>Removes Twitter entities (cashtags, hashtags, mentions and urls) from the given string</p>
+     * <p>If {@code cleanupFirst} parameter is set to {@code true} then text is being at first cleaned
+     * from text direction and special invisible symbols</p>
+     *
+     * @param text              Text to remove Twitter entities from
+     * @param cleanupFirst      Should the text be cleaned up from the special symbols before entity extraction
+     * @return                  Text without Twitter entities
+     * @see                     TextCleanupService#removeDirectionAndInvisibleChars(String)
+     */
+    public String removeTwitterEntities(final String text, final boolean cleanupFirst) {
+        final String input = cleanupFirst? removeDirectionAndInvisibleChars(text) : text;
+        final List<Extractor.Entity> entities = extractor.extractEntitiesWithIndices(input);
+
+        if (entities.isEmpty()) {
+            return input;
+        }
+
+        return removeTwitterEntitites(input, entities);
+    }
+
+    private String removeTwitterEntitites(final String input, final List<Extractor.Entity> entities) {
+        // Twitter extractor returns sorted entities so we can reconstruct new string
+        // by simply following those
+        final StringBuilder sb = new StringBuilder(input.length());
+
+        int beginIndex = 0;
+        for (final Extractor.Entity entity : entities) {
+            final Integer start = entity.getStart();
+            final Integer end = entity.getEnd();
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Removing {} ({})", entity.getValue(), entity.getType());
+            }
+
+            final String part = input.substring(beginIndex, start);
+            sb.append(part);
+
+            beginIndex = end;
+        }
+
+        final String postfix = input.substring(beginIndex, input.length());
+        sb.append(postfix);
 
         return sb.toString();
     }

@@ -17,12 +17,14 @@ package org.kgusarov.textprocessing.langdetect;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Map;
 
 /**
  * @author Konstantin Gusarov
  */
+@SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class LangProfileDocument {
     @JsonProperty("name")
     private String name;

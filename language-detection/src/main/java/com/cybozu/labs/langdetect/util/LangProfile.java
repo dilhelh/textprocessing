@@ -16,6 +16,7 @@ package com.cybozu.labs.langdetect.util;
  * limitations under the License.
  */
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.kgusarov.textprocessing.langdetect.LangProfileDocument;
 
 import java.util.Iterator;
@@ -33,6 +34,7 @@ import static java.util.Arrays.copyOf;
  * @author Nakatani Shuyo
  * @author Konstantin Gusarov
  */
+@SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class LangProfile {
     private static final int MINIMUM_FREQ = 2;
     private static final int LESS_FREQ_RATIO = 100000;

@@ -27,4 +27,11 @@ public class TextAnalysisException extends RuntimeException {
     public TextAnalysisException(final String message, final Throwable cause) {
         super(message, cause);
     }
+
+    /**
+     * @param message       Detailed error description
+     */
+    public TextAnalysisException(final String message) {
+        super(message);
+    }
 }
