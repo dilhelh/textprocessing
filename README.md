@@ -37,6 +37,41 @@ final TermExtractionService service = new TermExtractionService(true);
 final List<String> terms = service.getTerms("Some text to extract terms from");
 ```
 
+###### TextCleanupService
+Can be used both to remove some of the unwanted chars from the given text and extract Twitter-like entities: hashtags, cashtags,
+mentions and urls. Example usage:
+```java
+// Remove characters that are responsible for the text direction or
+// are invisible spaces that may interfere
+final TextCleanupService service = new TextCleanupService();
+final String cleanedUp = service.removeDirectionAndInvisibleChars("Some text with garbage here");
+
+// Remove Twitter-like entities from text. If second parameter is set to true
+// removeDirectionAndInvisibleChars() will be invoked before the entity cleanup
+final String withoutEntities = service.removeTwitterEntities("@kgusarov Click me! #coolbuttons", true);
+
+// It is also possible to get all the extracted entities with the cleaned up text
+final Pair<String, List<Extractor.Entity>> withAndWithoutEntities = service.extractTwitterEntities("@kgusarov Click me! #coolbuttons", true);
+```
+
+###### TransliterationService
+Utilizes [ICU4J](http://site.icu-project.org/home) for performing text transliteration. The service itself uses
+[Commons Pool](https://commons.apache.org/proper/commons-pool/) for pooling ```Transliterator``` instances. Example usage:
+```java
+// Create service instance with given pool and transliterator configuration
+final GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
+poolConfig.setMaxIdle(4);
+poolConfig.setMaxTotal(4);
+poolConfig.setMinIdle(4);
+
+final TransliterationService transliterationService =
+    new TransliterationService("Any-Lower; SomeExampleReplacement; Any-Latin; NFD; [^\\p{Alnum}] Remove", poolConfig);
+
+transliterationService.addTransliteratorConfiguration("SomeExampleReplacement", "йи > ji;");
+
+final String transliterated = transliterate("Мама мыла раму");
+```
+
 ## Thanks to
 [Michael McCandless](https://github.com/mikemccand) and his awesome [language detection test](https://github.com/mikemccand/chromium-compact-language-detector/blob/master/test.py) that I've honestly have used.  
 
