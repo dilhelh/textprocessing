@@ -41,6 +41,7 @@ import org.apache.lucene.analysis.hu.HungarianAnalyzer;
 import org.apache.lucene.analysis.id.IndonesianAnalyzer;
 import org.apache.lucene.analysis.it.ItalianAnalyzer;
 import org.apache.lucene.analysis.lv.LatvianAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.WordDelimiterFilter;
 import org.apache.lucene.analysis.nl.DutchAnalyzer;
 import org.apache.lucene.analysis.no.NorwegianAnalyzer;
 import org.apache.lucene.analysis.pt.PortugueseAnalyzer;
@@ -58,6 +59,9 @@ import java.io.StringReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.lucene.analysis.miscellaneous.WordDelimiterFilter.GENERATE_WORD_PARTS;
+import static org.apache.lucene.analysis.miscellaneous.WordDelimiterFilter.PRESERVE_ORIGINAL;
 
 /**
  * <p>This service is meant for term extraction from arbitary text by using {@code com.cybozu.labs.langdetect.Detector}
@@ -154,7 +158,8 @@ public class TermExtractionService {
         try (
                 final Reader sr = new StringReader(string);
                 final Analyzer analyzer = analyzerSupplier.get();
-                final TokenStream stream = analyzer.tokenStream(null, sr)
+                final TokenStream s = analyzer.tokenStream(null, sr);
+                final TokenStream stream = new WordDelimiterFilter(s, GENERATE_WORD_PARTS | PRESERVE_ORIGINAL, null);
         ) {
             stream.reset();
             while (stream.incrementToken()) {

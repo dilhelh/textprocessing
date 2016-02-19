@@ -75,6 +75,16 @@ public class TextAnalysisService {
         final String transliterated = transliterationService.transliterate(input);
 
         return new AnalysedText(input, transliterated, terms, transliteratedTerms, entities,
-                Entity::getValue, e -> transliterationService.transliterate(e.getValue()));
+                this::getEntityValue, this::transliterateEntityValue);
+    }
+
+    private String getEntityValue(final Entity entity) {
+        final String value = entity.getValue();
+        return value.toLowerCase();
+    }
+
+    private String transliterateEntityValue(final Entity entity) {
+        final String value = entity.getValue();
+        return transliterationService.transliterate(value);
     }
 }

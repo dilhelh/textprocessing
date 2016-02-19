@@ -76,6 +76,12 @@ final String transliterated = transliterate("Мама мыла раму");
 Performs text analysis by utilizing other service found in this module. It accepts those services as a constructor
 arguments and uses them to perform all the neccessary actions.
 ```java
+final TransliterationService ts = TransliterationServiceFactory.create();
+final TermExtractionService tes = new TermExtractionService(true);
+final TextCleanupService tcs = new TextCleanupService();
+
+final TextAnalysisService service = new TextAnalysisService(tes, tcs, ts);
+final AnalysedText analysedText = service.analyse("Text to analyse", true);
 ```
 
 ## Thanks to

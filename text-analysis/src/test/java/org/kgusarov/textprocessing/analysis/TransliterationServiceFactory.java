@@ -12,14 +12,14 @@ public final class TransliterationServiceFactory {
         poolConfig.setMaxTotal(4);
         poolConfig.setMinIdle(4);
 
-        final TransliterationService transliterationService = new TransliterationService("Any-Lower; LvSpecPreProcess; " +
-                "CyrPreProcess; Any-Latin; NFD; [^\\p{Alnum}] Remove", poolConfig);
+        final TransliterationService transliterationService = new TransliterationService("Any-Lower; [ъь] Remove; " +
+                "LvSpecPreProcess; CyrPreProcess; Any-Latin; Latin-ASCII", poolConfig);
 
         transliterationService.addTransliteratorConfiguration("LvSpecPreProcess", "йи > ji;");
         transliterationService.addTransliteratorConfiguration("CyrPreProcess",
                 "йи > ji; ая > aja; оя > oja; эя > eja; ия > ija; уя > uja; ыя > ija; ея > eja; " +
                         "ёя > eja; юя > uja; яя > aja; ай > ai; ой > oi; эй > ei; ий > ii; уй > ui; ый > ii; " +
-                        "ей > ei; ёй > ei; юй > ui; яй > ai; ^я > ja; ^е > je; ^ю > ju; ы > i;");
+                        "ей > ei; ёй > ei; юй > ui; яй > ai; ^я > ja; ^е > je; ^ю > ju; ы > i");
 
         return transliterationService;
     }
