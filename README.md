@@ -67,9 +67,15 @@ poolConfig.setMinIdle(4);
 final TransliterationService transliterationService =
     new TransliterationService("Any-Lower; SomeExampleReplacement; Any-Latin; NFD; [^\\p{Alnum}] Remove", poolConfig);
 
-transliterationService.addTransliteratorConfiguration("SomeExampleReplacement", "йи > ji;");
+transliterationService.addTransliteratorConfiguration("SomeExampleReplacement", "ы > i;");
 
 final String transliterated = transliterate("Мама мыла раму");
+```
+
+###### TextAnalysisService
+Performs text analysis by utilizing other service found in this module. It accepts those services as a constructor
+arguments and uses them to perform all the neccessary actions.
+```java
 ```
 
 ## Thanks to

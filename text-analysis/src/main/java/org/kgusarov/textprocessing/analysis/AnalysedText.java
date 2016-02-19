@@ -17,18 +17,20 @@ package org.kgusarov.textprocessing.analysis;
  */
 
 import com.google.common.collect.Lists;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
 import java.util.function.Function;
 
 import static com.twitter.Extractor.Entity;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * <p>This class stores text analysis result</p>
  * <p>It contains following information:</p>
  * <ul>
- * <li>Original text with no text direction symbols or invisible spaces</li>
- * <li>Original transliterated text with no text direction symbols or invisible spaces</li>
+ * <li>Original text</li>
+ * <li>Original transliterated text</li>
  * <li>Terms from text that were extracted with the help of {@code org.kgusarov.textprocessing.analysis.TermExtractionService}</li>
  * <li>Transliterated terms</li>
  * <li>Twitter entities</li>
@@ -42,6 +44,7 @@ import static com.twitter.Extractor.Entity;
  * @see org.kgusarov.textprocessing.analysis.TextCleanupService
  * @see org.kgusarov.textprocessing.analysis.TransliterationService
  */
+@SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"}, justification = "Inner collections are actually unmodifiable")
 public class AnalysedText {
     private final String originalText;
     private final String transliteratedText;
@@ -49,18 +52,18 @@ public class AnalysedText {
     private final List<String> originalTerms;
     private final List<String> transliteratedTerms;
 
-    /*private final List<AnalysedEntity> hashtags;
+    private final List<AnalysedEntity> hashtags;
     private final List<AnalysedEntity> cashtags;
     private final List<AnalysedEntity> mentions;
 
     // Transliterated URLs make no sense...
-    private final List<String> urls;*/
+    private final List<String> urls;
 
     /**
      * Create instance of the {@code AnalysedText}
      *
-     * @param originalText              Original text with no text direction symbols or invisible spaces
-     * @param transliteratedText        Original transliterated text with no text direction symbols or invisible spaces
+     * @param originalText              Original text
+     * @param transliteratedText        Original transliterated text
      * @param originalTerms             Terms extracted from text
      * @param transliteratedTerms       Transliterated terms extracted from text
      * @param entities                  Entities encountered in text
@@ -74,8 +77,8 @@ public class AnalysedText {
 
         this.originalText = originalText;
         this.transliteratedText = transliteratedText;
-        this.originalTerms = originalTerms;
-        this.transliteratedTerms = transliteratedTerms;
+        this.originalTerms = unmodifiableList(originalTerms);
+        this.transliteratedTerms = unmodifiableList(transliteratedTerms);
 
         final List<AnalysedEntity> hashtagList = Lists.newArrayList();
         final List<AnalysedEntity> cashtagList = Lists.newArrayList();
@@ -83,8 +86,113 @@ public class AnalysedText {
         final List<String> urlList = Lists.newArrayList();
 
         for (final Entity entity : entities) {
-
+            processEntity(entity, getEntityValue, transliterateEntityValue, hashtagList, cashtagList, mentionList, urlList);
         }
 
+        urls = unmodifiableList(urlList);
+        hashtags = unmodifiableList(hashtagList);
+        cashtags = unmodifiableList(cashtagList);
+        mentions = unmodifiableList(mentionList);
+    }
+
+    /**
+     * Get original text that was analysed
+     *
+     * @return      Original text
+     */
+    public String getOriginalText() {
+        return originalText;
+    }
+
+    /**
+     * Get transliterated text
+     *
+     * @return      Transliterated text
+     */
+    public String getTransliteratedText() {
+        return transliteratedText;
+    }
+
+    /**
+     * Get terms extracted from the analysed text
+     *
+     * @return      Term list
+     */
+    public List<String> getOriginalTerms() {
+        return originalTerms;
+    }
+
+    /**
+     * Get transliterated terms extracted from the analysed text
+     *
+     * @return      Transliterated term list
+     */
+    public List<String> getTransliteratedTerms() {
+        return transliteratedTerms;
+    }
+
+    /**
+     * Get hashtags extracted from the analysed text
+     *
+     * @return      Hashtag list
+     */
+    public List<AnalysedEntity> getHashtags() {
+        return hashtags;
+    }
+
+    /**
+     * Get cashtags extracted from the analysed text
+     *
+     * @return      Cashtag list
+     */
+    public List<AnalysedEntity> getCashtags() {
+        return cashtags;
+    }
+
+    /**
+     * Get mentions extracted from the analysed text
+     *
+     * @return      Mention list
+     */
+    public List<AnalysedEntity> getMentions() {
+        return mentions;
+    }
+
+    /**
+     * Get urls extracted from the analysed text
+     *
+     * @return      URL list
+     */
+    public List<String> getUrls() {
+        return urls;
+    }
+
+    private static void processEntity(final Entity entity, final Function<Entity, String> getEntityValue,
+                               final Function<Entity, String> transliterateEntityValue,
+                               final List<AnalysedEntity> hashtagList, final List<AnalysedEntity> cashtagList,
+                               final List<AnalysedEntity> mentionList, final List<String> urlList) {
+        final Entity.Type type = entity.getType();
+        final String value = getEntityValue.apply(entity);
+
+        if (type == Entity.Type.URL) {
+            urlList.add(value);
+        } else {
+            final String transliterated = transliterateEntityValue.apply(entity);
+            final AnalysedEntity analysedEntity = new AnalysedEntity(value, transliterated);
+
+            switch (type) {
+                case HASHTAG:
+                    hashtagList.add(analysedEntity);
+                    break;
+                case MENTION:
+                    mentionList.add(analysedEntity);
+                    break;
+                case CASHTAG:
+                    cashtagList.add(analysedEntity);
+                    break;
+                default:
+                    // Do nothing - this is entity unknown to us...
+            }
+        }
     }
 }
