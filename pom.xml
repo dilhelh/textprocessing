@@ -4,7 +4,7 @@
 
     <groupId>org.kgusarov.textprocessing</groupId>
     <artifactId>textprocessing</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>2.0.0</version>
     <modules>
         <module>language-detection</module>
         <module>text-analysis</module>
@@ -43,7 +43,7 @@
     <scm>
         <connection>scm:git:https://github.com/kgusarov/text-processing-utils.git</connection>
         <developerConnection>scm:git:https://github.com/kgusarov/text-processing-utils.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>textprocessing-2.0.0</tag>
     </scm>
 
     <distributionManagement>
