@@ -55,9 +55,7 @@ public class AnalysedText {
     private final List<AnalysedEntity> hashtags;
     private final List<AnalysedEntity> cashtags;
     private final List<AnalysedEntity> mentions;
-
-    // Transliterated URLs make no sense...
-    private final List<String> urls;
+    private final List<AnalysedEntity> urls;
 
     /**
      * Create instance of the {@code AnalysedText}
@@ -83,7 +81,7 @@ public class AnalysedText {
         final List<AnalysedEntity> hashtagList = Lists.newArrayList();
         final List<AnalysedEntity> cashtagList = Lists.newArrayList();
         final List<AnalysedEntity> mentionList = Lists.newArrayList();
-        final List<String> urlList = Lists.newArrayList();
+        final List<AnalysedEntity> urlList = Lists.newArrayList();
 
         for (final Entity entity : entities) {
             processEntity(entity, getEntityValue, transliterateEntityValue, hashtagList, cashtagList, mentionList, urlList);
@@ -163,22 +161,25 @@ public class AnalysedText {
      *
      * @return      URL list
      */
-    public List<String> getUrls() {
+    public List<AnalysedEntity> getUrls() {
         return urls;
     }
 
     private static void processEntity(final Entity entity, final Function<Entity, String> getEntityValue,
                                final Function<Entity, String> transliterateEntityValue,
                                final List<AnalysedEntity> hashtagList, final List<AnalysedEntity> cashtagList,
-                               final List<AnalysedEntity> mentionList, final List<String> urlList) {
+                               final List<AnalysedEntity> mentionList, final List<AnalysedEntity> urlList) {
         final Entity.Type type = entity.getType();
         final String value = getEntityValue.apply(entity);
+        final Integer start = entity.getStart();
+        final Integer end = entity.getEnd();
 
         if (type == Entity.Type.URL) {
-            urlList.add(value);
+            final AnalysedEntity analysedEntity = new AnalysedEntity(value, null, start, end);
+            urlList.add(analysedEntity);
         } else {
             final String transliterated = transliterateEntityValue.apply(entity);
-            final AnalysedEntity analysedEntity = new AnalysedEntity(value, transliterated);
+            final AnalysedEntity analysedEntity = new AnalysedEntity(value, transliterated, start, end);
 
             switch (type) {
                 case HASHTAG:

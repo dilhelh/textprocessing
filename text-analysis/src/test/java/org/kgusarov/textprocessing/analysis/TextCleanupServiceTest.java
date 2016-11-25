@@ -28,10 +28,23 @@ public class TextCleanupServiceTest {
     private static final String WITH_URLS_AND_GARBAGE = "visit\u200C\u200C http:\u200C//www.google.com f\u200Cor \u200Csomething";
     private static final String WITHOUT_URLS = "visit  for something";
 
+    private static final String WITH_NOPROTO_URLS = "visit google.com for something";
+    private static final String WITH_NOPROTO_URLS_AND_GARBAGE = "visit\u200C\u200C \u200Cgoogle.com f\u200Cor \u200Csomething";
+    private static final String WITHOUT_NOPROTO_URLS = "visit  for something";
+
     private static final String WITH_MIXED_ENTITITES = "$pssst @kgusarov Hey, there! Visit http://www.google.com for #something";
     private static final String WITH_MIXED_ENTITITES_AND_GARBAGE = "$pssst @kgusarov\u200C Hey, \u200Cthe\u200Cre! Visit " +
             "http:\u200C/\u200C\u200C/www.google.com for\u200C #somet\u200Ching";
     private static final String WITHOUT_MIXED_ENTITITES = "Hey, there! Visit  for";
+
+    @Test
+    public void testRemoveTwitterEntititesNoProtoUrls() throws Exception {
+        String s = SERVICE.removeTwitterEntities(WITH_NOPROTO_URLS, false);
+        assertEquals(WITHOUT_NOPROTO_URLS, s.trim());
+
+        s = SERVICE.removeTwitterEntities(WITH_NOPROTO_URLS_AND_GARBAGE, true);
+        assertEquals(WITHOUT_NOPROTO_URLS, s.trim());
+    }
 
     @Test
     public void testRemoveDirectionAndInvisibleChars() throws Exception {

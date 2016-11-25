@@ -28,15 +28,22 @@ public class AnalysedEntity {
     private final String originalValue;
     private final String transliteratedValue;
 
+    private final int startIndex;
+    private final int endIndex;
+
     /**
      * Create new {@code AnalysedEntity} instance
      *
      * @param originalValue         Original entity text
      * @param transliteratedValue   Transliterated entity text
+     * @param startIndex            Start index of the entity in the text
+     * @param endIndex              End index of the entity in the text
      */
-    public AnalysedEntity(final String originalValue, final String transliteratedValue) {
+    public AnalysedEntity(final String originalValue, final String transliteratedValue, final int startIndex, final int endIndex) {
         this.originalValue = originalValue;
         this.transliteratedValue = transliteratedValue;
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
     }
 
     /**
@@ -55,5 +62,23 @@ public class AnalysedEntity {
      */
     public String getTransliteratedValue() {
         return transliteratedValue;
+    }
+
+    /**
+     * Get start index of the entity in the text
+     *
+     * @return                      Start index of the entity in the text
+     */
+    public int getStartIndex() {
+        return startIndex;
+    }
+
+    /**
+     * Get end index of the entity in the text
+     *
+     * @return                      End index of the entity in the text
+     */
+    public int getEndIndex() {
+        return endIndex;
     }
 }

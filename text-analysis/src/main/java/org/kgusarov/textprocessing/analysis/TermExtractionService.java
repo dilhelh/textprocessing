@@ -36,6 +36,7 @@ import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.es.SpanishAnalyzer;
 import org.apache.lucene.analysis.fa.PersianAnalyzer;
 import org.apache.lucene.analysis.fi.FinnishAnalyzer;
+import org.apache.lucene.analysis.fr.FrenchAnalyzer;
 import org.apache.lucene.analysis.hi.HindiAnalyzer;
 import org.apache.lucene.analysis.hu.HungarianAnalyzer;
 import org.apache.lucene.analysis.id.IndonesianAnalyzer;
@@ -95,6 +96,7 @@ public class TermExtractionService {
         ANALYZERS_BY_LANGUAGE.put("es", SpanishAnalyzer::new);
         ANALYZERS_BY_LANGUAGE.put("fa", PersianAnalyzer::new);
         ANALYZERS_BY_LANGUAGE.put("fi", FinnishAnalyzer::new);
+        ANALYZERS_BY_LANGUAGE.put("fr", FrenchAnalyzer::new);
         ANALYZERS_BY_LANGUAGE.put("hi", HindiAnalyzer::new);
         ANALYZERS_BY_LANGUAGE.put("hu", HungarianAnalyzer::new);
         ANALYZERS_BY_LANGUAGE.put("id", IndonesianAnalyzer::new);

@@ -1,14 +1,13 @@
 package org.kgusarov.textprocessing.analysis;
 
 import com.google.common.collect.Lists;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -23,6 +22,10 @@ public class TextAnalysisServiceTest {
             "inte\u200Crnational с ягодками граната и клубничкой,как заключение приятного время провидения в " +
             "изысканном и в то же время уютно-домашнем ресторане в центре риге. Всем советую посетить!!!\n" +
             "\nhttp://www.lursoft.lv/address/riga-terbatas-iela-73-lv-1001" +
+            "\ngoogle.com" +
+            //"\ngoogle.lv" +
+            //"\nwhatever.lv" +
+            //"\nwhatever.lt" +
             "\n$also $some $cash" +
             "\n#Рига #Центр #Ch\u200Ceesecake #Омлет ";
 
@@ -41,9 +44,15 @@ public class TextAnalysisServiceTest {
         final List<AnalysedEntity> cashtags = analysedText.getCashtags();
         final List<AnalysedEntity> hashtags = analysedText.getHashtags();
         final List<AnalysedEntity> mentions = analysedText.getMentions();
-        final List<String> urls = analysedText.getUrls();
+        final List<AnalysedEntity> urls = analysedText.getUrls();
 
-        assertThat(urls, containsInAnyOrder("http://www.lursoft.lv/address/riga-terbatas-iela-73-lv-1001"));
+        final List<String> oUrls = toOriginal(urls);
+        final List<String> tUrls = toTransliterated(urls);
+
+        assertThat(oUrls, containsInAnyOrder("http://www.lursoft.lv/address/riga-terbatas-iela-73-lv-1001",
+                /*"google.lv",*/ "google.com"/*, "whatever.lv", "whatever.lt"*/));
+        assertThat(tUrls, iterableWithSize(2));
+        tUrls.forEach(Assert::assertNull);
 
         final List<String> oCashtags = toOriginal(cashtags);
         final List<String> tCashtags = toTransliterated(cashtags);
