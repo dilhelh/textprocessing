@@ -1,7 +1,8 @@
+dist: trusty
 language: Java
 jdk:
   - oraclejdk8
 
 notifications:
   email:
-    - konstantins.gusarovs@gmail.com
+    - guisousa09@hotmail.com
