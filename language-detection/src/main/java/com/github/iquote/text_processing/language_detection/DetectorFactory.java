@@ -10,6 +10,7 @@ import com.google.common.collect.Maps;
 
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
+import org.reflections.scanners.Scanners;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,8 +40,8 @@ import static java.util.Collections.unmodifiableList;
 @SuppressWarnings("unchecked")
 public class DetectorFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DetectorFactory.class);
-    private static final Pattern SHORT_MESSAGE_RESOURCES = Pattern.compile("^sm/(.*)\\.json$");
-    private static final Pattern LONG_MESSAGE_RESOURCES = Pattern.compile("^nr/(.*)\\.json$");
+    private static final Pattern SHORT_MESSAGE_RESOURCES = Pattern.compile("^.*\\/sm\\/(.*)\\.json$");
+    private static final Pattern LONG_MESSAGE_RESOURCES = Pattern.compile("^.*\\/nr\\/(.*)\\.json$");
     private static final Pattern JSON_MATCHER = Pattern.compile("^(.*)\\.json$");
 
     final Map<String, double[]> languageProbabilityMap = Maps.newHashMap();
@@ -54,7 +55,7 @@ public class DetectorFactory {
      */
     public DetectorFactory(final boolean shortMessages) {
         final Pattern resourceFilter = shortMessages ? SHORT_MESSAGE_RESOURCES : LONG_MESSAGE_RESOURCES;
-        final Reflections reflections = new Reflections(null, new ResourcesScanner());
+        final Reflections reflections = new Reflections(DetectorFactory.class.getPackageName(), Scanners.Resources);
         final List<String> resources = reflections.getResources(JSON_MATCHER)
                 .stream()
                 .filter(s -> resourceFilter.matcher(s).matches())
