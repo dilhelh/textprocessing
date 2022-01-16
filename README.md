@@ -1,10 +1,8 @@
 # Text Processing Utilities
 
-## Build Status in Travis CI
-[![Build Status](https://travis-ci.org/iQuote/textprocessing.svg?branch=master)](https://travis-ci.org/iQuote/textprocessing)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.iquote/language-detection/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.iquote/language-detection)
 
 ## Language Detection
-###### Forked from [https://github.com/shuyo/language-detection](https://github.com/shuyo/language-detection)
 One of the major changes here (except for some code style change and saying bye-bye to Mr. ```StringBuffer```) 
 is the "unstatic'ing" of the ```DetectorFactory``` class. Now it has to be created via consructor that accepts 
 a single parameter ```shortMessages``` that defines which corpus should be used:
@@ -83,9 +81,3 @@ final TextCleanupService tcs = new TextCleanupService();
 final TextAnalysisService service = new TextAnalysisService(tes, tcs, ts);
 final AnalysedText analysedText = service.analyse("Text to analyse", true);
 ```
-
-## Thanks to
-[Michael McCandless](https://github.com/mikemccand) and his awesome [language detection test](https://github.com/mikemccand/chromium-compact-language-detector/blob/master/test.py) that I've honestly have used.  
-
-## License
-Licensed under the Apache License, Version 2.0: [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
